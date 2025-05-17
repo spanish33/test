@@ -90,6 +90,9 @@ jobs:
           echo "CONFIG_TMPFS_POSIX_ACL=y" >> $DEFCONFIG
           echo "# CONFIG_BCM7038_L1_IRQ is not set" >> $DEFCONFIG
           echo "# CONFIG_ARCH_BRCMSTB is not set" >> $DEFCONFIG
+          echo "CONFIG_LTO=y" >> $DEFCONFIG
+          echo "CONFIG_LTO_CLANG=n" >> $DEFCONFIG
+          echo "CONFIG_THINLTO=y" >> $DEFCONFIG
           make O=out ARCH=arm64 olddefconfig
 
       - name: Configure Kernel and Enable LTO
@@ -110,6 +113,14 @@ jobs:
           scripts/config --file out/.config --enable LTO_THIN
           
           make O=out ARCH=arm64 olddefconfig
+
+      - name: Show defconfig contents for verification
+        run: |
+         cd "${{ env.CONFIG }}"
+         DEFCONFIG=arch/arm64/configs/${{ inputs.codename }}_defconfig
+         echo "==== BEGIN DEFCONFIG ===="
+         cat $DEFCONFIG
+         echo "==== END DEFCONFIG ===="
 
       - name: Debug Config Differences
         run: |
