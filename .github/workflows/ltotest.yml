@@ -61,8 +61,7 @@ jobs:
         run: |
           cd "${{ env.CONFIG }}"
           curl -LSs "https://raw.githubusercontent.com/spanish33/kernelsu/main/kernel/setup.sh" | bash -
-      
-
+     
       - name: Apply SUSFS and LTO
         run: |
           cd "${{ env.CONFIG }}"
@@ -97,7 +96,7 @@ jobs:
       - name: Change Kernel Name
         run: |
           echo "Changing to configuration directory: $CONFIG..."
-          cd "$CONFIG"
+          cd "${{ env.CONFIG }}"
           
           echo "Changing Kernel Name..."
           sed -i 's/CONFIG_LOCALVERSION="-Sultan"/CONFIG_LOCALVERSION="-android14-11-gd7dac4b14270-ab12946699"/' ./arch/arm64/configs/${{ inputs.codename }}_defconfig
@@ -106,9 +105,7 @@ jobs:
         run: |
           cd "${{ env.CONFIG }}"
           make O=out ARCH=arm64 ${{ inputs.codename }}_defconfig
-          make O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc --all) | tee build.log
-          echo "== Checking for -flto flags in build log =="
-          grep --color=always -- '-flto' build.log || echo "❌ No -flto flags found."
+          make O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc --all)
 
       - name: Inspect vmlinux for LTO sections
         run: |
