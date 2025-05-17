@@ -93,17 +93,7 @@ jobs:
           echo "CONFIG_LTO=y" >> $DEFCONFIG
           echo "# CONFIG_LTO_NONE is not set" >> $DEFCONFIG
           echo "# CONFIG_LTO_CLANG is not set" >> $DEFCONFIG
-          make O=out ARCH=arm64 olddefconfig
-
-      - name: Show defconfig contents for verification
-        run: |
-         cd "${{ env.CONFIG }}"
-         DEFCONFIG=arch/arm64/configs/${{ inputs.codename }}_defconfig
-         echo "==== BEGIN DEFCONFIG ===="
-         cat $DEFCONFIG
-         echo "==== END DEFCONFIG ===="
-
-
+          
       - name: Change Kernel Name
         run: |
           echo "Changing to configuration directory: $CONFIG..."
@@ -116,7 +106,7 @@ jobs:
         run: |
           cd "${{ env.CONFIG }}"
           make O=out ARCH=arm64 ${{ inputs.codename }}_defconfig
-          make O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc --all) V=1 | tee build.log
+          make O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc --all) | tee build.log
           echo "== Checking for -flto flags in build log =="
           grep --color=always -- '-flto' build.log || echo "❌ No -flto flags found."
 
@@ -134,7 +124,7 @@ jobs:
         run: |
          cd "${{ env.CONFIG }}/out"
          grep -E "CONFIG_LTO|CONFIG_THINLTO|CONFIG_LTO_GCC|CONFIG_LTO_CLANG" .config
-         grep CONFIG_LTO out/.config
+         grep "CONFIG_LTO" .config
          
       - name: Copy Images
         run: |
