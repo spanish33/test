@@ -67,7 +67,13 @@ jobs:
         run: |
           cd "${{ env.CONFIG }}"
           DEFCONFIG=arch/arm64/configs/${{ inputs.codename }}_defconfig
+         
+          # Generate .config from defconfig
+          make O=out ARCH=arm64 ${{ inputs.codename }}_defconfig
+
+          # Now .config exists, so it's safe to copy
           cp out/.config out/.config.before_lto
+          
           echo "CONFIG_KSU=y" >> $DEFCONFIG
           echo "CONFIG_KSU_WITH_KPROBES=n" >> $DEFCONFIG
           echo "CONFIG_KSU_SUSFS=y" >> $DEFCONFIG
