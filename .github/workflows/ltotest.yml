@@ -91,26 +91,11 @@ jobs:
           echo "# CONFIG_BCM7038_L1_IRQ is not set" >> $DEFCONFIG
           echo "# CONFIG_ARCH_BRCMSTB is not set" >> $DEFCONFIG
           echo "CONFIG_LTO=y" >> $DEFCONFIG
+          echo "# CONFIG_LTO_CLANG is not set" >> $DEFCONFIG
+          echo "# CONFIG_LTO_NONE is not set" >> $DEFCONFIG
           make O=out ARCH=arm64 olddefconfig
+          grep LTO out/.config
 
-      - name: Configure Kernel and Enable LTO
-        run: |
-          set -e
-          cd "${{ env.CONFIG }}"
-          DEFCONFIG=${{ inputs.codename }}_defconfig
-
-          make O=out ARCH=arm64 $DEFCONFIG
-          make O=out ARCH=arm64 olddefconfig
-
-          cp out/.config out/.config.before_lto
-
-          scripts/config --file out/.config --disable LTO_CLANG
-          scripts/config --file out/.config --disable LTO_NONE
-          scripts/config --file out/.config --enable LTO
-          scripts/config --file out/.config --enable LTO_GCC
-          scripts/config --file out/.config --enable LTO_THIN
-          
-          make O=out ARCH=arm64 olddefconfig
 
       - name: Show defconfig contents for verification
         run: |
