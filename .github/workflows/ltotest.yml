@@ -67,7 +67,7 @@ jobs:
         run: |
           cd "${{ env.CONFIG }}"
           DEFCONFIG=arch/arm64/configs/${{ inputs.codename }}_defconfig
-
+          cp out/.config out/.config.before_lto
           echo "CONFIG_KSU=y" >> $DEFCONFIG
           echo "CONFIG_KSU_WITH_KPROBES=n" >> $DEFCONFIG
           echo "CONFIG_KSU_SUSFS=y" >> $DEFCONFIG
@@ -91,15 +91,12 @@ jobs:
           echo "# CONFIG_BCM7038_L1_IRQ is not set" >> $DEFCONFIG
           echo "# CONFIG_ARCH_BRCMSTB is not set" >> $DEFCONFIG
           echo "CONFIG_LTO=y" >> $DEFCONFIG
-          echo "# CONFIG_LTO_CLANG is not set" >> $DEFCONFIG
-          echo "# CONFIG_LTO_NONE is not set" >> $DEFCONFIG
-          echo "CONFIG_LTO=y" >> $DEFCONFIG
           echo "CONFIG_LTO_GCC=y" >> $DEFCONFIG
           echo "# CONFIG_LTO_NONE is not set" >> $DEFCONFIG
           echo "# CONFIG_LTO_CLANG is not set" >> $DEFCONFIG
           make O=out ARCH=arm64 olddefconfig
           grep LTO out/.config
-
+          cat $DEFCONFIG
 
       - name: Show defconfig contents for verification
         run: |
