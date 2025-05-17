@@ -91,8 +91,6 @@ jobs:
           echo "# CONFIG_BCM7038_L1_IRQ is not set" >> $DEFCONFIG
           echo "# CONFIG_ARCH_BRCMSTB is not set" >> $DEFCONFIG
           echo "CONFIG_LTO=y" >> $DEFCONFIG
-          echo "CONFIG_LTO_CLANG=n" >> $DEFCONFIG
-          echo "CONFIG_THINLTO=y" >> $DEFCONFIG
           make O=out ARCH=arm64 olddefconfig
 
       - name: Configure Kernel and Enable LTO
@@ -135,19 +133,13 @@ jobs:
           echo "Changing Kernel Name..."
           sed -i 's/CONFIG_LOCALVERSION="-Sultan"/CONFIG_LOCALVERSION="-android14-11-gd7dac4b14270-ab12946699"/' ./arch/arm64/configs/${{ inputs.codename }}_defconfig
 
-      - name: Log build command and check for LTO
-        run: |
-         cd "${{ env.CONFIG }}"
-         make O=out ARCH=arm64 ${{ inputs.codename }}_defconfig
-         make O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc --all) V=1 | tee build.log
-         echo "== Checking for -flto flags in build log =="
-         grep --color=always -- '-flto' build.log || echo "❌ No -flto flags found."
- 
       - name: Build the Kernel
         run: |
           cd "${{ env.CONFIG }}"
           make O=out ARCH=arm64 ${{ inputs.codename }}_defconfig
-          make V=1 O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc --all)
+          make V=1 O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc --all) V=1 | tee build.log
+          echo "== Checking for -flto flags in build log =="
+          grep --color=always -- '-flto' build.log || echo "❌ No -flto flags found."
 
       - name: Inspect vmlinux for LTO sections
         run: |
