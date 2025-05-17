@@ -148,8 +148,22 @@ jobs:
           cd "${{ env.CONFIG }}"
           make O=out ARCH=arm64 ${{ inputs.codename }}_defconfig
           make V=1 O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc --all)
-          
-     
+
+      - name: Inspect vmlinux for LTO sections
+        run: |
+         cd "${{ env.CONFIG }}/out"
+         if [ -f vmlinux ]; then
+         echo "== readelf .gnu.lto_ section check =="
+         readelf -S vmlinux | grep '\.gnu\.lto_' || echo "❌ No .gnu.lto_ sections found."
+         else
+         echo "❌ vmlinux not found!"
+         fi
+
+      - name: Check .config for LTO options
+        run: |
+         cd "${{ env.CONFIG }}/out"
+         grep -E "CONFIG_LTO|CONFIG_THINLTO|CONFIG_LTO_GCC|CONFIG_LTO_CLANG" .config  
+         
       - name: Copy Images
         run: |
           cd "${{ env.CONFIG }}"
