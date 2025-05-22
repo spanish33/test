@@ -1,0 +1,161 @@
+name: gcclto
+
+permissions:
+  contents: write  
+  actions: write   
+
+on:
+  workflow_call: 
+    inputs:
+      codename:
+        required: true
+        type: string
+      repo:
+        required: true
+        type: string
+
+jobs:
+  gcclto:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 8192
+          temp-reserve-mb: 2048
+          swap-size-mb: 8192
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+
+      - name: Install packages
+        run: |
+         sudo apt update
+         sudo apt install -y \
+          build-essential \
+          libssl-dev \
+          libelf-dev \
+          flex bison \
+          libncurses-dev \
+          ccache \
+          git curl zip zstd
+
+      - name: Download GNU Toolchain
+        run: |
+           wget -O toolchain.tar.xz https://developer.arm.com/-/media/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+
+      - name: Extract toolchain
+        run: |
+          mkdir -p $HOME/gnu-toolchain
+          tar -xf toolchain.tar.xz -C $HOME/gnu-toolchain
+
+      - name: Set environment variables
+        run: |
+          echo "CC=aarch64-none-linux-gnu-gcc" >> $GITHUB_ENV
+          echo "LD=aarch64-none-linux-gnu-ld" >> $GITHUB_ENV
+          echo "AR=aarch64-none-linux-gnu-gcc-ar" >> $GITHUB_ENV
+          echo "NM=aarch64-none-linux-gnu-gcc-nm" >> $GITHUB_ENV
+          echo "RANLIB=aarch64-linux-gnu-gcc-ranlib" >> $GITHUB_ENV
+          echo "OBJCOPY=aarch64-none-linux-gnu-objcopy" >> $GITHUB_ENV
+          echo "OBJDUMP=aarch64-none-linux-gnu-objdump" >> $GITHUB_ENV
+          echo "PATH=$HOME/gnu-toolchain/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu/bin:$PATH" >> $GITHUB_ENV
+          echo "CROSS_COMPILE=aarch64-none-linux-gnu-" >> $GITHUB_ENV
+          echo "STRIP=aarch64-linux-gnu-strip" >> $GITHUB_ENV
+          echo "CONFIG=${{ inputs.repo }}" >> $GITHUB_ENV
+
+        
+      - name: Clone AnyKernel3 and Kernel Source
+        run: |
+          git clone --depth=1 https://github.com/spanish33/AnyKernel3.git -b 15.0.0-sultan-zuma
+          git clone --depth=1 https://github.com/spanish33/${{ inputs.repo }} -b sultan-susfs
+
+          
+      - name: Add KernelSU
+        run: |
+          cd "${{ env.CONFIG }}"
+          curl -LSs "https://raw.githubusercontent.com/spanish33/kernelsu/main/kernel/setup.sh" | bash -
+
+   
+      - name: Apply SUSFS and LTO Configs
+        run: |
+          cd "${{ env.CONFIG }}"
+          DEFCONFIG=arch/arm64/configs/${{ inputs.codename }}_defconfig
+
+          # Remove existing conflicting LTO lines
+          sed -i '/^CONFIG_LTO/d' $DEFCONFIG
+          sed -i '/^CONFIG_LTO_GCC/d' $DEFCONFIG
+          sed -i '/^CONFIG_LTO_CLANG/d' $DEFCONFIG
+          sed -i '/^CONFIG_LTO_CLANG_THIN/d' $DEFCONFIG
+          sed -i '/^CONFIG_LTO_CLANG_FULL/d' $DEFCONFIG
+          sed -i '/^CONFIG_LTO_NONE/d' $DEFCONFIG
+
+          # Add the correct GCC LTO config
+          echo "CONFIG_LTO=y" >> $DEFCONFIG
+          echo "CONFIG_LTO_GCC=y" >> $DEFCONFIG
+          echo "# CONFIG_LTO_CLANG is not set" >> $DEFCONFIG
+          echo "# CONFIG_LTO_CLANG_THIN is not set" >> $DEFCONFIG
+          echo "# CONFIG_LTO_CLANG_FULL is not set" >> $DEFCONFIG
+          echo "# CONFIG_LTO_NONE is not set" >> $DEFCONFIG  
+
+          echo "CONFIG_KSU=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_WITH_KPROBES=n" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> $DEFCONFIG
+          echo "CONFIG_TMPFS_XATTR=y" >> $DEFCONFIG
+          echo "CONFIG_TMPFS_POSIX_ACL=y" >> $DEFCONFIG
+
+      - name: Change Kernel Name
+        run: |
+          cd "${{ env.CONFIG }}"
+          echo "Changing Kernel Name..."
+          sed -i 's/CONFIG_LOCALVERSION="-Sultan"/CONFIG_LOCALVERSION="-android14-11-gd7dac4b14270-ab12946699"/' \
+            ./arch/arm64/configs/${{ inputs.codename }}_defconfig
+          
+
+      - name: Build the Kernel
+        run: |
+         cd "${{ env.CONFIG }}"
+         # Generate base defconfig
+         make O=out ARCH=arm64 ${{ inputs.codename }}_defconfig    
+         make O=out ARCH=arm64 \
+         CROSS_COMPILE=aarch64-none-linux-gnu- \
+         AR=${{ env.AR }} \
+         NM=${{ env.NM }} \
+         RANLIB=${{ env.RANLIB }} \
+         -j$(nproc --all) 2>&1 | tee build.log
+
+
+      - name: Copy Images
+        run: |
+          cd "${{ env.CONFIG }}"
+          cp out/arch/arm64/boot/Image.lz4 ../AnyKernel3/Image.lz4
+          cat out/google-devices/zuma/dts/*.dtb > ../AnyKernel3/dtb
+
+      - name: Create Flashable ZIP
+        run: |
+          cd AnyKernel3
+          ZIP_NAME="Sultan_SUSFS_GCC_LTO_test.zip"
+          zip -r "../$ZIP_NAME" ./*
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-${{ inputs.codename }}
+          path: |
+            ./Sultan_SUSFS_GCC_LTO_test.zip
