@@ -93,10 +93,10 @@ jobs:
           sed -i '/^CONFIG_LTO_NONE/d' $DEFCONFIG
 
           # Add the CLANG LTO and SUSFS config
-          echo "CONFIG_LTO=y" >> $DEFCONFIG
-          echo "CONFIG_LTO_CLANG=y" >> $DEFCONFIG
+          echo "# CONFIG_LTO is not set" >> $DEFCONFIG
+          echo "# CONFIG_LTO_CLANG is not set" >> $DEFCONFIG
           echo "# CONFIG_LTO_GCC is not set" >> $DEFCONFIG
-          echo "CONFIG_LTO_CLANG_THIN=y" >> $DEFCONFIG
+          echo "# CONFIG_LTO_CLANG_THIN is not set" >> $DEFCONFIG
           echo "# CONFIG_LTO_CLANG_FULL is not set" >> $DEFCONFIG
           echo "# CONFIG_LTO_NONE is not set" >> $DEFCONFIG
           echo "CONFIG_KSU=y" >> $DEFCONFIG
@@ -168,7 +168,7 @@ jobs:
       - name: Create Flashable ZIP
         run: |
           cd AnyKernel3
-          ZIP_NAME="Sultan_Clang_lto_test.zip"
+          ZIP_NAME="Sultan_Clang_test.zip"
           zip -r "../$ZIP_NAME" ./*
 
       - name: Upload Build Artifacts
@@ -176,4 +176,4 @@ jobs:
         with:
           name: kernel-${{ inputs.codename }}
           path: |
-            ./Sultan_Clang_test_lto.zip
+            ./Sultan_Clang_test.zip
