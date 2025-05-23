@@ -45,7 +45,7 @@ jobs:
 
           git clone --branch android-15.0.0_r0.81 --depth 1 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 clang-prebuilts
           ls -lR clang-prebuilts
-          mv prebuilts-clang/host/linux-x86/clang-r487747c $HOME/toolchain
+          mv clang-prebuilts/clang-r487747c $HOME/toolchain
 
       
       - name: Verify clang version
