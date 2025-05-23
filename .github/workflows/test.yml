@@ -139,7 +139,7 @@ jobs:
         run: |
           cd "${{ env.CONFIG }}"
           # Use the correct defconfig for your device
-          make O=out ARCH=arm64 ${{ inputs.codename }}_defconfig
+          #make O=out ARCH=arm64 ${{ inputs.codename }}_defconfig
 
       - name: Check final .config for SUSFS and LTO
         run: |
@@ -158,6 +158,7 @@ jobs:
          #CROSS_COMPILE=aarch64-linux-gnu- \
          #CC=clang \
          #-j$(nproc) 2>&1 | tee build.log | grep gcip_defs
+         mkdir -p logs
          make -C $KERNEL_SRC M=$M V=1 > logs/make.log 2>&1 || true
 
       - name: Stop inotifywait
