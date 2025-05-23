@@ -43,9 +43,11 @@ jobs:
           #git clone --depth=1 --branch=18 https://gitlab.com/ThankYouMario/android_prebuilts_clang-standalone.git clang
           #mv clang $HOME/toolchain
 
-          git clone --branch android-15.0.0_r0.81 --depth 1 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 $HOME/toolchain
-          
-      - name: Verify clang binary
+          git clone --branch android-15.0.0_r0.81 --depth 1 https://android.googlesource.com/platform/prebuilts/clang clang-prebuilts
+          mv prebuilts-clang/host/linux-x86/clang-r487747c $HOME/toolchain
+
+      
+      - name: Verify clang version
         run: |
           $HOME/toolchain/bin/clang --version
 
