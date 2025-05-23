@@ -127,6 +127,19 @@ jobs:
           sed -i 's/CONFIG_LOCALVERSION="-Sultan"/CONFIG_LOCALVERSION="Sultan-clang-lto"/' \
             ./arch/arm64/configs/${{ inputs.codename }}_defconfig
 
+      - name: Disable LTO for gcip-mailbox.o
+        run: |
+          cd "${{ env.CONFIG }}"
+          MAKEFILE_PATH="google-modules/gxp/zuma/gcip-kernel-driver/drivers/gcip/Makefile"
+          
+          if grep -q "KCFLAGS_gcip-mailbox.o" "$MAKEFILE_PATH"; then
+            echo "Makefile already contains KCFLAGS for gcip-mailbox.o"
+          else
+            echo "KCFLAGS_gcip-mailbox.o := -fno-lto" >> "$MAKEFILE_PATH"
+            echo "Injected -fno-lto for gcip-mailbox.o"
+          fi
+
+
 
       - name: Build defconfig
         run: |
