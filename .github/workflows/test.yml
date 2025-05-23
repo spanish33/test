@@ -146,11 +146,12 @@ jobs:
       - name: Build the Kernel with CLANG LTO flags
         run: |
          cd "${{ env.CONFIG }}"
-         export KCFLAGS="-Wno-missing-variable-declarations -Wno-unused-but-set-variable -Wno-error -Wno-unused-variable -Wno-unused-const-variable -fno-split-lto-unit"
-         make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 V=1\
-         CROSS_COMPILE=aarch64-linux-gnu- \
-         CC=clang \
-         -j$(nproc) 2>&1 | tee build.log | grep gcip_defs
+         #export KCFLAGS="-Wno-missing-variable-declarations -Wno-unused-but-set-variable -Wno-error -Wno-unused-variable -Wno-unused-const-variable -fno-split-lto-unit"
+         #make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 V=1\
+         #CROSS_COMPILE=aarch64-linux-gnu- \
+         #CC=clang \
+         #-j$(nproc) 2>&1 | tee build.log | grep gcip_defs
+         make -C /lib/modules/$(uname -r)/build M=$(pwd)/google-modules/gxp/zuma/gcip-kernel-driver/drivers/gcip V=1
 
         
       - name: Check .config for LTO options
