@@ -143,7 +143,7 @@ jobs:
 
        
              
-      - name: Build the Kernel with CLANG LTO flags
+      - name: Build the Kernel with CLANG
         run: |
          cd "${{ env.CONFIG }}"
          export KCFLAGS="-Wno-missing-variable-declarations -Wno-unused-but-set-variable -Wno-error -Wno-unused-variable -Wno-unused-const-variable"
