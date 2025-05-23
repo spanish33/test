@@ -93,10 +93,10 @@ jobs:
           sed -i '/^CONFIG_LTO_NONE/d' $DEFCONFIG
 
           # Add the CLANG LTO and SUSFS config
-          echo "# CONFIG_LTO is not set" >> $DEFCONFIG
-          echo "# CONFIG_LTO_CLANG is not set" >> $DEFCONFIG
+          echo "CONFIG_LTO=y" >> $DEFCONFIG
+          echo "CONFIG_LTO_CLANG=y" >> $DEFCONFIG
           echo "# CONFIG_LTO_GCC is not set" >> $DEFCONFIG
-          echo "# CONFIG_LTO_CLANG_THIN is not set" >> $DEFCONFIG
+          echo "CONFIG_LTO_CLANG_THIN=y" >> $DEFCONFIG
           echo "# CONFIG_LTO_CLANG_FULL is not set" >> $DEFCONFIG
           echo "# CONFIG_LTO_NONE is not set" >> $DEFCONFIG
           echo "CONFIG_KSU=y" >> $DEFCONFIG
