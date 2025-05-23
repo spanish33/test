@@ -146,7 +146,7 @@ jobs:
       - name: Build the Kernel with CLANG LTO flags
         run: |
          cd "${{ env.CONFIG }}"
-         export KCFLAGS="-Wno-missing-variable-declarations -Wno-unused-but-set-variable -Wno-error -Wno-unused-variable -Wno-unused-const-variable -fno-split-lto-unit"
+         export KCFLAGS="-Wno-missing-variable-declarations -Wno-unused-but-set-variable -Wno-error -Wno-c99-extensions -Wno-unused-variable -Wno-unused-const-variable -fno-split-lto-unit"
          make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 LD=ld.lld \
          CROSS_COMPILE=aarch64-linux-gnu- \
          CC=clang \
