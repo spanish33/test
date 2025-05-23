@@ -142,7 +142,7 @@ jobs:
         run: |
          cd "${{ env.CONFIG }}"
          export KCFLAGS="-Wno-missing-variable-declarations -Wno-unused-but-set-variable -Wno-error -Wno-unused-variable -Wno-unused-const-variable"
-         make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 \
+         make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 LD=ld.lld \
          CROSS_COMPILE=aarch64-linux-gnu- \
          CC=clang \
          -j$(nproc) 2>&1 | tee build.log
