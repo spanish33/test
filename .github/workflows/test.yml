@@ -67,6 +67,8 @@ jobs:
           echo "CROSS_COMPILE=aarch64-linux-gnu-" >> $GITHUB_ENV
           echo "ARCH=arm64" >> $GITHUB_ENV
           echo "CONFIG=${{ inputs.repo }}" >> $GITHUB_ENV
+          echo "KERNEL_SRC=/lib/modules/$(uname -r)/build" >> $GITHUB_ENV
+          echo "M=$PWD/google-modules/gxp/zuma/gcip-kernel-driver/drivers/gcip" >> $GITHUB_ENV
 
 
       - name: Clone AnyKernel3 and Kernel Source
@@ -127,6 +129,11 @@ jobs:
           sed -i 's/CONFIG_LOCALVERSION="-Sultan"/CONFIG_LOCALVERSION="Sultan-clang-lto"/' \
             ./arch/arm64/configs/${{ inputs.codename }}_defconfig
 
+      - name: Start inotifywait in background
+        run: |
+          mkdir -p logs
+          nohup inotifywait -rm ./ -e create -e modify > logs/inotify.log 2>&1 &
+          echo $! > inotify.pid
 
       - name: Build defconfig
         run: |
@@ -151,8 +158,11 @@ jobs:
          #CROSS_COMPILE=aarch64-linux-gnu- \
          #CC=clang \
          #-j$(nproc) 2>&1 | tee build.log | grep gcip_defs
-         make -C /lib/modules/$(uname -r)/build M=$(pwd)/google-modules/gxp/zuma/gcip-kernel-driver/drivers/gcip V=1
+         make -C $KERNEL_SRC M=$M V=1 > logs/make.log 2>&1 || true
 
+      - name: Stop inotifywait
+        run: |
+          kill $(cat inotify.pid)
         
       - name: Check .config for LTO options
         run: |
