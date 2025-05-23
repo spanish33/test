@@ -1,0 +1,179 @@
+name: ttt
+
+permissions:
+  contents: write  
+  actions: write   
+
+on:
+  workflow_call: 
+    inputs:
+      codename:
+        required: true
+        type: string
+      repo:
+        required: true
+        type: string
+
+jobs:
+  tttclang:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 8192
+          temp-reserve-mb: 2048
+          swap-size-mb: 8192
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bc bison flex libssl-dev libelf-dev make libncurses-dev git python3 zstd gcc-aarch64-linux-gnu
+
+      - name: Download Android toolchain
+        run: |
+          #git clone --depth=1 --branch=llvm-r522817 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 clang-prebuilts
+          #mv clang-prebuilts/clang-r522817 $HOME/toolchain
+          #git clone --depth=1 --branch=18 https://gitlab.com/ThankYouMario/android_prebuilts_clang-standalone.git clang
+          #mv clang $HOME/toolchain
+          git clone --branch android-gs-shusky-6.1-android15-qpr2 --depth 1 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 clang-prebuilts
+          mv clang-prebuilts/clang-r487747c $HOME/toolchain
+
+
+      
+      - name: Verify clang version
+        run: |
+          $HOME/toolchain/bin/clang --version
+
+
+      - name: Set up environment variables
+        run: |
+          echo "CC=clang" >> $GITHUB_ENV
+          echo "LD=ld.lld" >> $GITHUB_ENV
+          echo "AR=llvm-ar" >> $GITHUB_ENV
+          echo "NM=llvm-nm" >> $GITHUB_ENV
+          echo "OBJCOPY=llvm-objcopy" >> $GITHUB_ENV
+          echo "OBJDUMP=llvm-objdump" >> $GITHUB_ENV
+          echo "STRIP=llvm-strip" >> $GITHUB_ENV
+          echo "LLVM=1" >> $GITHUB_ENV
+          echo "LLVM_IAS=1" >> $GITHUB_ENV
+          echo "PATH=$HOME/toolchain/bin:$PATH" >> $GITHUB_ENV
+          echo "CROSS_COMPILE=aarch64-linux-gnu-" >> $GITHUB_ENV
+          echo "ARCH=arm64" >> $GITHUB_ENV
+          echo "CONFIG=${{ inputs.repo }}" >> $GITHUB_ENV
+
+
+      - name: Clone AnyKernel3 and Kernel Source
+        run: |
+            git clone --depth=1 https://github.com/spanish33/AnyKernel3.git -b 15.0.0-sultan-zuma
+            git clone --depth=1 https://github.com/spanish33/${{ inputs.repo }} -b sultan-susfs
+
+
+      - name: Add KernelSU
+        run: |
+           cd "${{ env.CONFIG }}"
+           curl -LSs "https://raw.githubusercontent.com/spanish33/kernelsu/main/kernel/setup.sh" | bash -
+
+      - name: Apply SUSFS and LTO ConfiG
+        run: |
+          cd "${{ env.CONFIG }}"
+          DEFCONFIG=arch/arm64/configs/${{ inputs.codename }}_defconfig
+          # Remove existing conflicting LTO lines
+          sed -i '/^CONFIG_LTO/d' $DEFCONFIG
+          sed -i '/^CONFIG_LTO_GCC/d' $DEFCONFIG
+          sed -i '/^CONFIG_LTO_CLANG/d' $DEFCONFIG
+          sed -i '/^CONFIG_LTO_CLANG_THIN/d' $DEFCONFIG
+          sed -i '/^CONFIG_LTO_CLANG_FULL/d' $DEFCONFIG
+          sed -i '/^CONFIG_LTO_NONE/d' $DEFCONFIG
+
+          # Add the CLANG LTO and SUSFS config
+          echo "CONFIG_LTO=y" >> $DEFCONFIG
+          echo "CONFIG_LTO_CLANG=y" >> $DEFCONFIG
+          echo "# CONFIG_LTO_GCC is not set" >> $DEFCONFIG
+          echo "CONFIG_LTO_CLANG_THIN=y" >> $DEFCONFIG
+          echo "# CONFIG_LTO_CLANG_FULL is not set" >> $DEFCONFIG
+          echo "# CONFIG_LTO_NONE is not set" >> $DEFCONFIG
+          echo "CONFIG_KSU=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_WITH_KPROBES=n" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> $DEFCONFIG
+          echo "CONFIG_TMPFS_XATTR=y" >> $DEFCONFIG
+
+             
+      - name: Change Kernel Name
+        run: |
+          cd "${{ env.CONFIG }}"
+          echo "Changing Kernel Name..."
+          sed -i 's/CONFIG_LOCALVERSION="-Sultan"/CONFIG_LOCALVERSION="Sultan-clang-lto"/' \
+            ./arch/arm64/configs/${{ inputs.codename }}_defconfig
+
+
+      - name: Build defconfig
+        run: |
+          cd "${{ env.CONFIG }}"
+          # Use the correct defconfig for your device
+          make O=out ARCH=arm64 ${{ inputs.codename }}_defconfig
+
+      - name: Check final .config for SUSFS and LTO
+        run: |
+          cd "${{ env.CONFIG }}"
+          echo "== Final .config  =="
+          grep -E 'CONFIG_LTO|CONFIG_KSU|CONFIG_SUSFS' out/.config || echo "❌ Missing expected configs"
+          grep -E STACKPROTECTOR out/.config || echo "❌ Missing expected configs"
+
+       
+             
+      - name: Build the Kernel with CLANG LTO flags
+        run: |
+         cd "${{ env.CONFIG }}"
+         export KCFLAGS="-Wno-missing-variable-declarations -Wno-unused-but-set-variable -Wno-error -Wno-unused-variable -Wno-unused-const-variable -fno-split-lto-unit"
+         make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 LD=ld.lld \
+         CROSS_COMPILE=aarch64-linux-gnu- \
+         CC=clang \
+         -j$(nproc) 2>&1 | tee build.log
+
+        
+      - name: Check .config for LTO options
+        run: |
+         cd "${{ env.CONFIG }}/out"
+         grep -E "CONFIG_LTO|CONFIG_THINLTO|CONFIG_LTO_GCC|CONFIG_LTO_CLANG" .config
+         grep "CONFIG_LTO" .config 
+         
+      - name: Copy Images
+        run: |
+          cd "${{ env.CONFIG }}"
+          cp out/arch/arm64/boot/Image.lz4 ../AnyKernel3/Image.lz4
+          cat out/google-devices/zuma/dts/*.dtb > ../AnyKernel3/dtb
+
+      - name: Create Flashable ZIP
+        run: |
+          cd AnyKernel3
+          ZIP_NAME="Sultan_Clang_lto_ttt.zip"
+          zip -r "../$ZIP_NAME" ./*
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-${{ inputs.codename }}
+          path: |
+            ./Sultan_Clang_ttt_lto.zip
