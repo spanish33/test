@@ -150,7 +150,7 @@ jobs:
          make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 | grep gcip_defs \
          CROSS_COMPILE=aarch64-linux-gnu- \
          CC=clang \
-         -j$(nproc) 2>&1 | tee build.log
+         -j$(nproc) 2>&1 | tee build.log | grep gcip_defs
 
         
       - name: Check .config for LTO options
