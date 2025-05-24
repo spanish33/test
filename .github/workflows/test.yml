@@ -72,7 +72,7 @@ jobs:
       - name: Clone AnyKernel3 and Kernel Source
         run: |
             git clone --depth=1 https://github.com/spanish33/AnyKernel3.git -b 15.0.0-sultan-zuma
-            git clone --depth=1 https://github.com/spanish33/${{ inputs.repo }} -b sultan-susfs
+            git clone --depth=1 https://github.com/spanish33/${{ inputs.repo }} -b tt
 
 
       - name: Add KernelSU
@@ -127,11 +127,6 @@ jobs:
           echo "Changing Kernel Name..."
           sed -i 's/CONFIG_LOCALVERSION="-Sultan"/CONFIG_LOCALVERSION="Sultan-clang-lto"/' \
             ./arch/arm64/configs/${{ inputs.codename }}_defconfig
-
-      - name: Inject -fno-lto globally for EdgeTPU
-        run: |
-          echo 'ccflags-y += -fno-lto' >> android_kernel_google_zuma/google-modules/edgetpu/rio/drivers/edgetpu/Kbuild
-
 
       - name: Build defconfig
         run: |
