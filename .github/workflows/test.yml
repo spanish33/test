@@ -128,11 +128,9 @@ jobs:
           sed -i 's/CONFIG_LOCALVERSION="-Sultan"/CONFIG_LOCALVERSION="Sultan-clang-lto"/' \
             ./arch/arm64/configs/${{ inputs.codename }}_defconfig
 
-      - name: Globally disable LTO for EdgeTPU sources
+      - name: Inject -fno-lto globally for EdgeTPU
         run: |
-          echo "Disabling LTO for all EdgeTPU and GCIP driver files..."
-          find android_kernel_google_zuma/google-modules/edgetpu/ -name '*.c' -exec sed -i '1i// no-lto' {} +
-          find android_kernel_google_zuma/google-modules/edgetpu/ -name 'Makefile' -exec sed -i '1iKBUILD_CFLAGS += -fno-lto' {} +
+          echo 'ccflags-y += -fno-lto' >> android_kernel_google_zuma/google-modules/edgetpu/rio/drivers/edgetpu/Kbuild
 
 
       - name: Build defconfig
