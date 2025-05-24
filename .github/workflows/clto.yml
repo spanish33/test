@@ -133,7 +133,8 @@ jobs:
           FILE="android_kernel_google_zuma/google-modules/gxp/zuma/gcip-kernel-driver/drivers/gcip/gcip-mailbox.c"
 
           sed -i \
-            's|^static void gcip_mailbox_do_consume_responses(struct gcip_mailbox \*mailbox, bool trylock)|static __attribute__((used, noinline, visibility("hidden"))) void gcip_mailbox_do_consume_responses(struct gcip_mailbox *mailbox, bool trylock)|' \
+            's|^static void gcip_mailbox_do_consume_responses(struct gcip_mailbox \*mailbox, bool trylock)|static __attribute__((used)) __attribute__((noinline)) __attribute__((visibility("hidden")))
+             void gcip_mailbox_do_consume_responses(struct gcip_mailbox *mailbox, bool trylock)|' \
             "$FILE"
 
           echo "Patch applied to: $FILE"
@@ -143,7 +144,8 @@ jobs:
           FILE="android_kernel_google_zuma/google-modules/edgetpu/rio/drivers/edgetpu/gcip-kernel-driver/drivers/gcip/gcip-mailbox.c"
 
           sed -i \
-            's|^static void gcip_mailbox_do_consume_responses(struct gcip_mailbox \*mailbox, bool trylock)|static __attribute__((used, noinline, visibility("hidden"))) void gcip_mailbox_do_consume_responses(struct gcip_mailbox *mailbox, bool trylock)|' \
+            's|^static void gcip_mailbox_do_consume_responses(struct gcip_mailbox \*mailbox, bool trylock)|static __attribute__((used)) __attribute__((noinline)) __attribute__((visibility("hidden")))
+             void gcip_mailbox_do_consume_responses(struct gcip_mailbox *mailbox, bool trylock)|' \
             "$FILE"
 
           echo "Patch applied to: $FILE"
