@@ -128,23 +128,65 @@ jobs:
           sed -i 's/CONFIG_LOCALVERSION="-Sultan"/CONFIG_LOCALVERSION="Sultan-clang-lto"/' \
             ./arch/arm64/configs/${{ inputs.codename }}_defconfig
 
-      - name: Apply patch to function definition
+      - name: Apply #undef noinline and patch function declaration
         run: |
           FILE="android_kernel_google_zuma/google-modules/gxp/zuma/gcip-kernel-driver/drivers/gcip/gcip-mailbox.c"
+          BACKUP="${FILE}.bak"
 
-          sed -i 's|^static void gcip_mailbox_do_consume_responses(struct gcip_mailbox \*mailbox, bool trylock)|static __attribute__((used, visibility("hidden"))) void __attribute__((noinline)) gcip_mailbox_do_consume_responses(struct gcip_mailbox *mailbox, bool trylock)|' "$FILE"
+          echo "Backing up and patching $FILE..."
 
+          # Backup original
+          cp "$FILE" "$BACKUP"
 
-          echo "Patch applied to: $FILE"
+          # Use awk to insert #undef noinline and replace the function declaration
+          awk '
+            BEGIN { patched = 0 }
+            /static void gcip_mailbox_do_consume_responses\(struct gcip_mailbox \*mailbox, bool trylock\)/ {
+              print "#undef noinline"
+              print "static __attribute__((used, noinline, visibility(\"hidden\"))) void gcip_mailbox_do_consume_responses(struct gcip_mailbox *mailbox, bool trylock)"
+              patched = 1
+              next
+            }
+            { print }
+            END {
+              if (patched == 0) {
+                print "Function not found!" > "/dev/stderr"
+                exit 1
+              }
+            }
+          ' "$BACKUP" > "$FILE"
 
-      - name: Apply patch to function definition #2
+          echo "Patch applied to $FILE"
+
+      - name: Apply #undef noinline and patch function declaration #2
         run: |
           FILE="android_kernel_google_zuma/google-modules/edgetpu/rio/drivers/edgetpu/gcip-kernel-driver/drivers/gcip/gcip-mailbox.c"
+          BACKUP="${FILE}.bak"
 
-           sed -i 's|^static void gcip_mailbox_do_consume_responses(struct gcip_mailbox \*mailbox, bool trylock)|static __attribute__((used, visibility("hidden"))) void __attribute__((noinline)) gcip_mailbox_do_consume_responses(struct gcip_mailbox *mailbox, bool trylock)|' "$FILE"
+          echo "Backing up and patching $FILE..."
 
+          # Backup original
+          cp "$FILE" "$BACKUP"
 
-          echo "Patch applied to: $FILE"
+          # Use awk to insert #undef noinline and replace the function declaration
+          awk '
+            BEGIN { patched = 0 }
+            /static void gcip_mailbox_do_consume_responses\(struct gcip_mailbox \*mailbox, bool trylock\)/ {
+              print "#undef noinline"
+              print "static __attribute__((used, noinline, visibility(\"hidden\"))) void gcip_mailbox_do_consume_responses(struct gcip_mailbox *mailbox, bool trylock)"
+              patched = 1
+              next
+            }
+            { print }
+            END {
+              if (patched == 0) {
+                print "Function not found!" > "/dev/stderr"
+                exit 1
+              }
+            }
+          ' "$BACKUP" > "$FILE"
+
+          echo "Patch applied to $FILE"
 
       - name: Build defconfig
         run: |
