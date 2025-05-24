@@ -67,9 +67,7 @@ jobs:
           echo "CROSS_COMPILE=aarch64-linux-gnu-" >> $GITHUB_ENV
           echo "ARCH=arm64" >> $GITHUB_ENV
           echo "CONFIG=${{ inputs.repo }}" >> $GITHUB_ENV
-          echo "KERNEL_SRC=$GITHUB_WORKSPACE/${{ inputs.repo }}" >> $GITHUB_ENV
-          echo "M=$GITHUB_WORKSPACE/${{ inputs.repo }}/google-modules/gxp/zuma/gcip-kernel-driver/drivers/gcip" >> $GITHUB_ENV
-
+        
 
       - name: Clone AnyKernel3 and Kernel Source
         run: |
@@ -97,8 +95,8 @@ jobs:
           # Add the CLANG LTO and SUSFS config
           echo "CONFIG_LTO=y" >> $DEFCONFIG
           echo "CONFIG_LTO_CLANG=y" >> $DEFCONFIG
-          echo "# CONFIG_LTO_GCC is not set" >> $DEFCONFIG
           echo "CONFIG_LTO_CLANG_THIN=y" >> $DEFCONFIG
+          echo "# CONFIG_LTO_GCC is not set" >> $DEFCONFIG
           echo "# CONFIG_LTO_CLANG_FULL is not set" >> $DEFCONFIG
           echo "# CONFIG_LTO_NONE is not set" >> $DEFCONFIG
           echo "CONFIG_KSU=y" >> $DEFCONFIG
@@ -120,7 +118,6 @@ jobs:
           echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> $DEFCONFIG
           echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> $DEFCONFIG
           echo "CONFIG_TMPFS_XATTR=y" >> $DEFCONFIG
-          echo "CONFIG_MODULES=y" >> $DEFCONFIG
 
              
       - name: Change Kernel Name
@@ -130,11 +127,6 @@ jobs:
           sed -i 's/CONFIG_LOCALVERSION="-Sultan"/CONFIG_LOCALVERSION="Sultan-clang-lto"/' \
             ./arch/arm64/configs/${{ inputs.codename }}_defconfig
 
-      - name: Start inotifywait in background
-        run: |
-          mkdir -p logs
-          nohup inotifywait -rm ./ -e create -e modify > logs/inotify.log 2>&1 &
-          echo $! > inotify.pid
 
       - name: Build defconfig
         run: |
@@ -142,14 +134,6 @@ jobs:
           # Use the correct defconfig for your device
           make O=out ARCH=arm64 ${{ inputs.codename }}_defconfig
 
-      - name: Build GCIP Module
-        run: |
-          mkdir -p logs
-          make O=out ARCH=arm64 -C "$KERNEL_SRC" M="$M" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- LLVM=1 LLVM_IAS=1 modules > logs/make.log 2>&1 || (cat logs/make.log && exit 1)
-
-      - name: Stop inotifywait
-        run: |
-          kill $(cat inotify.pid)
 
       - name: Check final .config for SUSFS and LTO
         run: |
@@ -163,11 +147,11 @@ jobs:
       - name: Build the Kernel with CLANG LTO flags
         run: |
          cd "${{ env.CONFIG }}"
-         #export KCFLAGS="-Wno-missing-variable-declarations -Wno-unused-but-set-variable -Wno-error -Wno-unused-variable -Wno-unused-const-variable -fno-split-lto-unit"
-         #make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 V=1\
-         #CROSS_COMPILE=aarch64-linux-gnu- \
-         #CC=clang \
-         #-j$(nproc) 2>&1 | tee build.log | grep gcip_defs
+         export KCFLAGS="-Wno-missing-variable-declarations -Wno-unused-but-set-variable -Wno-error -Wno-unused-variable -Wno-unused-const-variable -fno-split-lto-unit"
+         make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 V=1\
+         CROSS_COMPILE=aarch64-linux-gnu- \
+         CC=clang \
+         -j$(nproc) 2>&1 | tee build.log | grep gcip_defs
 
         
       - name: Check .config for LTO options
