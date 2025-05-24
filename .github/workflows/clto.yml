@@ -72,7 +72,7 @@ jobs:
       - name: Clone AnyKernel3 and Kernel Source
         run: |
             git clone --depth=1 https://github.com/spanish33/AnyKernel3.git -b 15.0.0-sultan-zuma
-            git clone --depth=1 https://github.com/spanish33/${{ inputs.repo }} -b ttt
+            git clone --depth=1 https://github.com/spanish33/${{ inputs.repo }} -b sultan-susfs
 
 
       - name: Add KernelSU
@@ -127,6 +127,26 @@ jobs:
           echo "Changing Kernel Name..."
           sed -i 's/CONFIG_LOCALVERSION="-Sultan"/CONFIG_LOCALVERSION="Sultan-clang-lto"/' \
             ./arch/arm64/configs/${{ inputs.codename }}_defconfig
+
+      - name: Apply patch to function definition
+        run: |
+          FILE="android_kernel_google_zuma/google-modules/gxp/zuma/gcip-kernel-driver/drivers/gcip/gcip-mailbox.c"
+
+          sed -i \
+            's|^static void gcip_mailbox_do_consume_responses(struct gcip_mailbox \*mailbox, bool trylock)|static __attribute__((used, noinline, visibility("hidden"))) void gcip_mailbox_do_consume_responses(struct gcip_mailbox *mailbox, bool trylock)|' \
+            "$FILE"
+
+          echo "Patch applied to: $FILE"
+
+      - name: Apply patch to function definition #2
+        run: |
+          FILE="android_kernel_google_zuma/google-modules/edgetpu/rio/drivers/edgetpu/gcip-kernel-driver/drivers/gcip/gcip-mailbox.c"
+
+          sed -i \
+            's|^static void gcip_mailbox_do_consume_responses(struct gcip_mailbox \*mailbox, bool trylock)|static __attribute__((used, noinline, visibility("hidden"))) void gcip_mailbox_do_consume_responses(struct gcip_mailbox *mailbox, bool trylock)|' \
+            "$FILE"
+
+          echo "Patch applied to: $FILE"
 
       - name: Build defconfig
         run: |
