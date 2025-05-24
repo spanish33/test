@@ -72,7 +72,7 @@ jobs:
       - name: Clone AnyKernel3 and Kernel Source
         run: |
             git clone --depth=1 https://github.com/spanish33/AnyKernel3.git -b 15.0.0-sultan-zuma
-            git clone --depth=1 https://github.com/spanish33/${{ inputs.repo }} -b sultan-susfs
+            git clone --depth=1 https://github.com/spanish33/${{ inputs.repo }} -b temp
 
 
       - name: Add KernelSU
