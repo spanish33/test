@@ -41,7 +41,7 @@ jobs:
           git clone --depth=1 --branch=18 https://gitlab.com/ThankYouMario/android_prebuilts_clang-standalone.git clang
           mv clang $HOME/toolchain
           #git clone --depth=1 --branch=llvm-r522817 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 clang-prebuilts
-          #mv clang-prebuilts/clang-r522817 $HOME/toolchai
+          #mv clang-prebuilts/clang-r522817 $HOME/toolchain
 
       - name: Check compiler version
         run: clang --version
