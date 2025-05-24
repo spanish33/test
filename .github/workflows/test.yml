@@ -145,7 +145,7 @@ jobs:
       - name: Build GCIP Module
         run: |
           mkdir -p logs
-          make -C "$KERNEL_SRC" M="$M" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- LLVM=1 LLVM_IAS=1 modules > logs/make.log 2>&1 || (cat logs/make.log && exit 1)
+          make O=out ARCH=arm64 -C "$KERNEL_SRC" M="$M" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- LLVM=1 LLVM_IAS=1 modules > logs/make.log 2>&1 || (cat logs/make.log && exit 1)
 
       - name: Stop inotifywait
         run: |
