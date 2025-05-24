@@ -67,6 +67,7 @@ jobs:
           echo "CROSS_COMPILE=aarch64-linux-gnu-" >> $GITHUB_ENV
           echo "ARCH=arm64" >> $GITHUB_ENV
           echo "CONFIG=${{ inputs.repo }}" >> $GITHUB_ENV
+          echo "CONFIG_MODULES=y" >> $DEFCONFIG
           echo "KERNEL_SRC=$GITHUB_WORKSPACE/${{ inputs.repo }}" >> $GITHUB_ENV
           echo "M=$GITHUB_WORKSPACE/${{ inputs.repo }}/google-modules/gxp/zuma/gcip-kernel-driver/drivers/gcip" >> $GITHUB_ENV
 
