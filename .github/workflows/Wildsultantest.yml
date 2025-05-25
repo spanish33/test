@@ -39,12 +39,12 @@ jobs:
       - name: Installing dependencies
         run: |
           sudo apt update
-          sudo apt install -y gcc-aarch64-linux-gnu
+          sudo apt-get install -y bc bison flex libssl-dev libelf-dev make libncurses-dev git python3 zstd gcc-aarch64-linux-gnu
 
       - name: Download Android toolchain
         run: |
-          git clone --branch android-gs-shusky-6.1-android15-qpr2 --depth 1 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 clang-prebuilts
-          mv clang-prebuilts/clang-r487747c $HOME/toolchain
+          git clone --depth=1 --branch=llvm-r522817 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 clang-prebuilts
+          mv clang-prebuilts/clang-r522817 $HOME/toolchain
 
       - name: Set CONFIG Environment Variable
         run: |
