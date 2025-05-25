@@ -17,6 +17,8 @@ jobs:
     with:
       codename: "zuma"
       repo: "android_kernel_google_zuma"
+      android_version: "android14"
+      kernel_version: "6.1"
 
   trigger-release:
     runs-on: ubuntu-latest
