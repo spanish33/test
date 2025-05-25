@@ -1,10 +1,11 @@
 name: ws
+
 permissions:
-  contents: write  # Allow writing to repository contents (for pushing tags)
-  actions: write   # Allows triggering actions
+  contents: write  
+  actions: write   
 
 on:
-  workflow_call: # This allows this workflow to be called from another workflow
+  workflow_call: 
     inputs:
       codename:
         required: true
@@ -13,23 +14,21 @@ on:
         required: true
         type: string
 
-  
 jobs:
   ws:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Maximize Build Space
-        uses: AdityaGarg8/remove-unwanted-software@v5
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
         with:
-          remove-dotnet: 'true'          # Frees ~2 GB
-          remove-android: 'true'         # Frees ~9 GB
-          remove-haskell: 'true'         # Frees ~5.2 GB
-          remove-codeql: 'true'          # Frees ~5.4 GB
-          remove-docker-images: 'true'   # Frees ~3.2 GB
-          remove-large-packages: 'true'  # Frees ~3.1 GB
-          remove-swapfile: 'true'        # Frees ~4 GB
-          remove-cached-tools: 'false'   # Avoid unless confirmed safe
-          verbose: 'true'                # Enable detailed logging
+          root-reserve-mb: 8192
+          temp-reserve-mb: 2048
+          swap-size-mb: 8192
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
           
       - name: Installing dependencies
         run: |
