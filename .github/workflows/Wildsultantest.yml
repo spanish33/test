@@ -12,12 +12,7 @@ on:
       repo:
         required: true
         type: string
-      android_version:
-        required: true
-        type: string
-      kernel_version:
-        required: true
-        type: string
+
   
 jobs:
   ws:
