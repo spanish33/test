@@ -95,7 +95,6 @@ jobs:
           echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y" >> $DEFCONFIG
           echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y" >> $DEFCONFIG
           echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> $DEFCONFIG
-          echo "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=y" >> $DEFCONFIG
           echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> $DEFCONFIG
           echo "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y" >> $DEFCONFIG
           echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> $DEFCONFIG
@@ -124,12 +123,12 @@ jobs:
       - name: Create Flashable ZIP
         run: |
           cd AnyKernel3
-          ZIP_NAME="Sultan_SUSFS_KernelSU-Next_A15.zip"
+          ZIP_NAME="Sultan_SUSFS_KernelSU-Next_May_A15.zip"
           zip -r "../$ZIP_NAME" ./*
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Zuma-A15-GCC
+          name: Zuma-May-A15
           path: |
-            ./Sultan_SUSFS_KernelSU-Next_A15.zip
+            ./Sultan_SUSFS_KernelSU-Next_May_A15.zip
