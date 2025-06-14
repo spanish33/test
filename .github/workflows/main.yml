@@ -136,7 +136,7 @@ jobs:
           patch -p1 --forward < devpts_lsm.patch || true
           patch -p0 --forward < ksu_version.patch || true
           patch -p1 --forward < hook_mode.patch || true
-          patch -p1 --forward < su_compat_toggle.patch || true
+          patch -p0 --forward < su_compat_toggle.patch || true
           patch -p0 --forward < add_ksu-next_manager.patch || true
 
       - name: Apply KSU Hooks from 0ctobot
