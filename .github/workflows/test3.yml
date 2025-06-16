@@ -1,4 +1,4 @@
-name: clanglto-ksu
+name: test3
 
 permissions:
   contents: write  
@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  clanglto-ksu:
+  test3:
     runs-on: ubuntu-latest
     
     env:
