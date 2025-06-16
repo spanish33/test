@@ -137,6 +137,7 @@ jobs:
           echo "# CONFIG_LTO_CLANG_FULL is not set" >> $DEFCONFIG
           echo "CONFIG_KSU=y" >> $DEFCONFIG
           echo "CONFIG_KSU_WITH_KPROBES=n" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> $DEFCONFIG
           echo "CONFIG_KSU_SUSFS=y" >> $DEFCONFIG
           echo "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" >> $DEFCONFIG
           echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> $DEFCONFIG
@@ -182,7 +183,12 @@ jobs:
          make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 \
          CROSS_COMPILE=aarch64-linux-gnu- \
          CC=clang -j$(nproc)
-    
+
+      - name: Check SUSFS and LTO
+        run: |
+          cd "${{ env.CONFIG }}"
+          echo "== Final .config  =="
+          grep -E 'CONFIG_LTO|CONFIG_KSU|CONFIG_SUSFS' out/.config || echo "❌ Missing expected configs"
       
       - name: Copy Images
         run: |
