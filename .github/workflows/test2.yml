@@ -150,6 +150,12 @@ jobs:
           sed -i 's/CONFIG_LOCALVERSION="-Sultan"/CONFIG_LOCALVERSION="-android14-11-gd7dac4b14270-ab12946699"/' \
             ./arch/arm64/configs/${{ env.CODENAME }}_defconfig
 
+      - name: Build defconfig
+        run: |
+          cd "${{ env.CONFIG }}"
+          # Use the correct defconfig for your device
+          make O=out ARCH=arm64 ${{ env.CODENAME }}_defconfig
+      
       - name: Modify out/.config for SUSFS and LTO
         run: |
           cd "${{ env.CONFIG }}"
@@ -192,11 +198,7 @@ jobs:
           # Normalize with olddefconfig
           make O=out ARCH=arm64 olddefconfig 
 
-      - name: Build defconfig
-        run: |
-          cd "${{ env.CONFIG }}"
-          # Use the correct defconfig for your device
-          make O=out ARCH=arm64 ${{ env.CODENAME }}_defconfig
+
 
       - name: Check final .config for SUSFS and LTO
         run: |
