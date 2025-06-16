@@ -31,12 +31,7 @@ jobs:
       - name: Install dependencies
         run: |
          sudo apt update
-         sudo apt install -y \
-          libssl-dev \
-          libelf-dev \
-          bc flex bison \
-          libncurses-dev \
-          gcc-aarch64-linux-gnu
+         sudo apt install -y libssl-dev libelf-dev bc flex bison libncurses-dev
 
       - name: Restore Clang Toolchain Cache
         id: cache-clang
