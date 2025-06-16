@@ -1,4 +1,4 @@
-name: test3
+name: clanglto-ksu
 
 permissions:
   contents: write  
@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test3:
+  clanglto-ksu:
     runs-on: ubuntu-latest
     
     env:
@@ -111,6 +111,8 @@ jobs:
           cp ./patches/0ctobot_hooks.patch ${{env.REPO}}/
           cp ./patches/clang-lto.patch ${{env.REPO}}/
           cp ./patches/clang-lto-test.patch ${{env.REPO}}/
+          cp ./patches/ksu_handle_execve_ksud.patch ${{env.REPO}}/KernelSU/
+          cp ./patches/devpts_lsm.patch ${{env.REPO}}/KernelSU/
           cp ./patches/ksu_version.patch ${{env.REPO}}/KernelSU/
           cp ./patches/hook_mode.patch ${{env.REPO}}/KernelSU/
           cp ./patches/su_compat_toggle.patch ${{env.REPO}}/KernelSU/
@@ -132,8 +134,7 @@ jobs:
           patch -p1 --forward < 10_enable_susfs_for_ksu.patch || true
           patch -p0 --forward < ksu_version.patch || true
           patch -p1 --forward < hook_mode.patch || true
-          patch -p0 --forward < su_compat_toggle.patch || true
-          patch -p0 --forward < managers.patch || true
+
 
 
       - name: Apply KSU Hooks from 0ctobot
