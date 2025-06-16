@@ -37,24 +37,23 @@ jobs:
         id: cache-clang
         uses: actions/cache/restore@v4
         with:
-          path: ./toolchain/llvm-20.1.7
-          key: llvm-20.1.7
+          path: ./toolchain/clang-r547379
+          key: clang-r547379
 
       - name: Clone Clang Toolchain
         if: steps.cache-clang.outputs.cache-hit != 'true'
         run: |
-
-          wget https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.7/LLVM-20.1.7-Linux-X64.tar.xz
-          tar -xf LLVM-20.1.7-Linux-X64.tar.xz
-          mv LLVM-20.1.7-Linux-X64 ./toolchain/llvm-20.1.7
-
+          git clone --depth=1 --branch=android16-release https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 clang-prebuilts
+          mkdir -p ./toolchain
+          mv clang-prebuilts/clang-r547379 ./toolchain/clang-r547379
+          rm -rf clang-prebuilts
 
       - name: Save Clang Toolchain Cache
         if: steps.cache-clang.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
-          path: ./toolchain/llvm-20.1.7
-          key: llvm-20.1.7
+          path: ./toolchain/clang-r547379
+          key: clang-r547379
 
       
       - name: Set up environment variables
@@ -68,7 +67,7 @@ jobs:
           echo "STRIP=llvm-strip" >> $GITHUB_ENV
           echo "LLVM=1" >> $GITHUB_ENV
           echo "LLVM_IAS=1" >> $GITHUB_ENV
-          echo "PATH=$GITHUB_WORKSPACE/toolchain/llvm-20.1.7/bin:$PATH" >> $GITHUB_ENV
+          echo "PATH=$GITHUB_WORKSPACE/toolchain/clang-r547379/bin:$PATH" >> $GITHUB_ENV
           echo "CROSS_COMPILE=aarch64-linux-gnu-" >> $GITHUB_ENV
           echo "CONFIG=${{env.REPO}}" >> $GITHUB_ENV
           
@@ -82,11 +81,13 @@ jobs:
           echo "Clone Repositories"
           
           # Clone Repositories
-          git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
           git clone https://github.com/spanish33/AnyKernel3.git -b 15.0.0-sultan-zuma
           git clone https://github.com/spanish33/patches.git
           git clone --depth=1 https://github.com/kerneltoast/${{env.REPO}} -b 15.0.0-sultan
-      
+          git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
+          cd susfs4ksu
+          git checkout a9cae84b13902a60ec542decb2e5a7553b97799b
+          
       - name: Add KernelSU
         run: |
           echo "Changing to configuration directory"
@@ -109,6 +110,10 @@ jobs:
           cp ./patches/clang-lto-test.patch ${{env.REPO}}/
           cp ./patches/ksu_handle_execve_ksud.patch ${{env.REPO}}/KernelSU/
           cp ./patches/devpts_lsm.patch ${{env.REPO}}/KernelSU/
+          cp ./patches/ksu_version.patch ${{env.REPO}}/KernelSU/
+          cp ./patches/hook_mode.patch ${{env.REPO}}/KernelSU/
+          cp ./patches/su_compat_toggle.patch ${{env.REPO}}/KernelSU/
+          cp ./patches/managers.patch ${{env.REPO}}/KernelSU/
           
 
           echo "Changing to configuration directory"
@@ -126,6 +131,11 @@ jobs:
           patch -p1 --forward < 10_enable_susfs_for_ksu.patch || true
           patch -p1 --forward < ksu_handle_execve_ksud.patch || true
           patch -p1 --forward < devpts_lsm.patch || true
+          patch -p0 --forward < ksu_version.patch || true
+          patch -p1 --forward < hook_mode.patch || true
+          patch -p0 --forward < su_compat_toggle.patch || true
+          patch -p0 --forward < managers.patch || true
+
 
 
       - name: Apply KSU Hooks from 0ctobot
