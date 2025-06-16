@@ -106,8 +106,6 @@ jobs:
           cp ./patches/0ctobot_hooks.patch ${{env.REPO}}/
           cp ./patches/clang-lto.patch ${{env.REPO}}/
           cp ./patches/clang-lto-test.patch ${{env.REPO}}/
-          cp ./patches/revert_sus_su.patch ${{env.REPO}}/
-          cp ./patches/sus_su2.patch ${{env.REPO}}/
           cp ./patches/ksu_handle_execve_ksud.patch ${{env.REPO}}/KernelSU/
           cp ./patches/devpts_lsm.patch ${{env.REPO}}/KernelSU/
           cp ./patches/ksu_version.patch ${{env.REPO}}/KernelSU/
@@ -135,8 +133,7 @@ jobs:
           patch -p1 --forward < hook_mode.patch || true
           patch -p0 --forward < su_compat_toggle.patch || true
           patch -p0 --forward < managers.patch || true
-          patch -p0 --forward < revert_sus_su.patch || true
-          patch -p0 --forward < sus_su2.patch || true
+
 
 
       - name: Apply KSU Hooks from 0ctobot
