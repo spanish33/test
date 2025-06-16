@@ -1,4 +1,4 @@
-name: test2
+name: clanglto-ksu
 
 permissions:
   contents: write  
@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test2:
+  clanglto-ksu:
     runs-on: ubuntu-latest
     
     env:
@@ -32,7 +32,6 @@ jobs:
         run: |
          sudo apt update
          sudo apt install -y libssl-dev libelf-dev bc flex bison libncurses-dev
-
 
       - name: Restore Clang Toolchain Cache
         id: cache-clang
@@ -109,10 +108,6 @@ jobs:
           cp ./patches/clang-lto-test.patch ${{env.REPO}}/
           cp ./patches/ksu_handle_execve_ksud.patch ${{env.REPO}}/KernelSU/
           cp ./patches/devpts_lsm.patch ${{env.REPO}}/KernelSU/
-          cp ./patches/ksu_version.patch ${{env.REPO}}/KernelSU/
-          cp ./patches/hook_mode.patch ${{env.REPO}}/KernelSU/
-          cp ./patches/su_compat_toggle.patch ${{env.REPO}}/KernelSU/
-          cp ./patches/managers.patch ${{env.REPO}}/KernelSU/
           
 
           echo "Changing to configuration directory"
@@ -130,10 +125,6 @@ jobs:
           patch -p1 --forward < 10_enable_susfs_for_ksu.patch || true
           patch -p1 --forward < ksu_handle_execve_ksud.patch || true
           patch -p1 --forward < devpts_lsm.patch || true
-          patch -p0 --forward < ksu_version.patch || true
-          patch -p1 --forward < hook_mode.patch || true
-          patch -p0 --forward < su_compat_toggle.patch || true
-          patch -p0 --forward < managers.patch || true
 
 
       - name: Apply KSU Hooks from 0ctobot
@@ -141,6 +132,44 @@ jobs:
           echo "Applying hooks"
           cd "${{ env.CONFIG }}"
           patch -p1 --forward < 0ctobot_hooks.patch || true
+
+      - name: Apply SUSFS
+        run: |
+          cd "${{ env.CONFIG }}"
+          DEFCONFIG=arch/arm64/configs/${{ env.CODENAME }}_defconfig
+          # Remove existing conflicting LTO lines
+          sed -i '/^CONFIG_LTO/d' $DEFCONFIG
+          sed -i '/^CONFIG_LTO_GCC/d' $DEFCONFIG
+          sed -i '/^CONFIG_LTO_CLANG/d' $DEFCONFIG
+          sed -i '/^CONFIG_LTO_CLANG_THIN/d' $DEFCONFIG
+          sed -i '/^CONFIG_LTO_CLANG_FULL/d' $DEFCONFIG
+          sed -i '/^CONFIG_LTO_NONE/d' $DEFCONFIG
+
+          # Add the CLANG LTO and SUSFS config
+          echo "CONFIG_LTO=y" >> $DEFCONFIG
+          echo "CONFIG_LTO_CLANG=y" >> $DEFCONFIG
+          echo "CONFIG_LTO_CLANG_THIN=y" >> $DEFCONFIG
+          echo "# CONFIG_LTO_GCC is not set" >> $DEFCONFIG
+          echo "# CONFIG_LTO_CLANG_FULL is not set" >> $DEFCONFIG
+          echo "CONFIG_KSU=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_WITH_KPROBES=n" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> $DEFCONFIG
+          echo "CONFIG_TMPFS_XATTR=y" >> $DEFCONFIG
+          echo "CONFIG_TMPFS_POSIX_ACL=y" >> $DEFCONFIG
 
             
       - name: Change Kernel Name
@@ -155,50 +184,6 @@ jobs:
           cd "${{ env.CONFIG }}"
           # Use the correct defconfig for your device
           make O=out ARCH=arm64 ${{ env.CODENAME }}_defconfig
-      
-      - name: Modify out/.config for SUSFS and LTO
-        run: |
-          cd "${{ env.CONFIG }}"
-
-          CONFIG_FILE=out/.config
-
-          # Append only if not already present
-          add_config() {
-          grep -qxF "$1" "$CONFIG_FILE" || echo "$1" >> "$CONFIG_FILE"
-          }
-
-          # LTO & KernelSU configs
-          add_config "CONFIG_LTO=y"
-          add_config "CONFIG_LTO_CLANG=y"
-          add_config "CONFIG_LTO_CLANG_THIN=y"
-          add_config "# CONFIG_LTO_GCC is not set"
-          add_config "# CONFIG_LTO_CLANG_FULL is not set"
-          add_config "# CONFIG_LTO_NONE is not set"
-
-          add_config "CONFIG_KSU=y"
-          add_config "CONFIG_KSU_WITH_KPROBES=n"
-          add_config "CONFIG_KSU_SUSFS_SUS_SU=n"
-          add_config "CONFIG_KSU_SUSFS=y"
-          add_config "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y"
-          add_config "CONFIG_KSU_SUSFS_SUS_PATH=y"
-          add_config "CONFIG_KSU_SUSFS_SUS_MOUNT=y"
-          add_config "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y"
-          add_config "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y"
-          add_config "CONFIG_KSU_SUSFS_SUS_KSTAT=y"
-          add_config "CONFIG_KSU_SUSFS_TRY_UMOUNT=y"
-          add_config "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y"
-          add_config "CONFIG_KSU_SUSFS_SPOOF_UNAME=y"
-          add_config "CONFIG_KSU_SUSFS_ENABLE_LOG=y"
-          add_config "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y"
-          add_config "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y"
-          add_config "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y"
-          add_config "CONFIG_TMPFS_XATTR=y"
-          add_config "CONFIG_TMPFS_POSIX_ACL=y"
-
-          # Normalize with olddefconfig
-          make O=out ARCH=arm64 olddefconfig 
-
-
 
       - name: Check final .config for SUSFS and LTO
         run: |
