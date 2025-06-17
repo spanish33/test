@@ -85,8 +85,7 @@ jobs:
           git clone https://github.com/spanish33/patches.git
           git clone --depth=1 https://github.com/kerneltoast/${{env.REPO}} -b 15.0.0-sultan
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
-          cd susfs4ksu
-          git checkout a9cae84b13902a60ec542decb2e5a7553b97799b
+
           
       - name: Add KernelSU
         run: |
