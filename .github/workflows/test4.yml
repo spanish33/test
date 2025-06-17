@@ -33,27 +33,11 @@ jobs:
          sudo apt update
          sudo apt install -y libssl-dev libelf-dev bc flex bison libncurses-dev
 
-      - name: Restore Clang Toolchain Cache
-        id: cache-clang
-        uses: actions/cache/restore@v4
-        with:
-          path: ./toolchain/clang-v21
-          key: clang-v21
-
-      - name: Clone Clang Toolchain
-        if: steps.cache-clang.outputs.cache-hit != 'true'
+      - name: Download GNU Toolchain
         run: |
           wget -O toolchain.tar.gz https://github.com/ZyCromerZ/Clang/releases/download/21.0.0git-20250617-release/Clang-21.0.0git-20250617.tar.gz
           mkdir -p $HOME/toolchain
-          tar -xf toolchain.tar.gz -C ./toolchain/clang-v21
-
-      - name: Save Clang Toolchain Cache
-        if: steps.cache-clang.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: ./toolchain/clang-v21
-          key: clang-v21
-
+          tar -xf toolchain.tar.gz -C $HOME/toolchain
       
       - name: Set up environment variables
         run: |
@@ -66,7 +50,7 @@ jobs:
           echo "STRIP=llvm-strip" >> $GITHUB_ENV
           echo "LLVM=1" >> $GITHUB_ENV
           echo "LLVM_IAS=1" >> $GITHUB_ENV
-          echo "PATH=$GITHUB_WORKSPACE/toolchain/clang-v21/bin:$PATH" >> $GITHUB_ENV
+          echo "PATH=$HOME/toolchain/bin:$PATH" >> $GITHUB_ENV
           echo "CROSS_COMPILE=aarch64-linux-gnu-" >> $GITHUB_ENV
           echo "CONFIG=${{env.REPO}}" >> $GITHUB_ENV
           
