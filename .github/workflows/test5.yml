@@ -35,8 +35,11 @@ jobs:
 
       - name: Download Clang Beta Toolchain
         run: |
-          git clone --depth=1 --branch=18 https://gitlab.com/ThankYouMario/android_prebuilts_clang-standalone.git clang
-          mv clang $HOME/toolchain
+          mkdir -p "$HOME/toolchain"
+          cd "$HOME/toolchain"
+          bash <(curl -s "https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman") -S
+          #git clone --depth=1 --branch=18 https://gitlab.com/ThankYouMario/android_prebuilts_clang-standalone.git clang
+          #mv clang $HOME/toolchain
           #wget -O toolchain.tar.gz https://github.com/ZyCromerZ/Clang/releases/download/21.0.0git-20250617-release/Clang-21.0.0git-20250617.tar.gz
           #mkdir -p $HOME/toolchain
           #tar -xf toolchain.tar.gz -C $HOME/toolchain
