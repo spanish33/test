@@ -35,11 +35,12 @@ jobs:
 
       - name: Download Clang Beta Toolchain
         run: |
+          git clone --depth=1 --branch=18 https://gitlab.com/ThankYouMario/android_prebuilts_clang-standalone.git clang
+          mv clang $HOME/toolchain
           #wget -O toolchain.tar.gz https://github.com/ZyCromerZ/Clang/releases/download/21.0.0git-20250617-release/Clang-21.0.0git-20250617.tar.gz
           #mkdir -p $HOME/toolchain
           #tar -xf toolchain.tar.gz -C $HOME/toolchain
-          git clone --depth=1 --branch=18 https://gitlab.com/ThankYouMario/android_prebuilts_clang-standalone.git clang
-          mv clang $HOME/toolchain
+
       
       - name: Set up environment variables
         run: |
@@ -143,8 +144,8 @@ jobs:
           # Add the CLANG LTO and SUSFS config
           echo "CONFIG_LTO=y" >> $DEFCONFIG
           echo "CONFIG_LTO_CLANG=y" >> $DEFCONFIG
-          echo "CONFIG_LTO_CLANG_FULL=y" >> $DEFCONFIG
-          echo "# CONFIG_LTO_CLANG_THIN is not se" >> $DEFCONFIG
+          echo "CONFIG_LTO_CLANG_THIN=y" >> $DEFCONFIG
+          echo "# CONFIG_LTO_CLANG_FULL is not set" >> $DEFCONFIG
           echo "# CONFIG_LTO_GCC is not set" >> $DEFCONFIG
           echo "CONFIG_KSU=y" >> $DEFCONFIG
           echo "CONFIG_KSU_WITH_KPROBES=n" >> $DEFCONFIG
