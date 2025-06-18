@@ -88,6 +88,8 @@ jobs:
           cp ./patches/fuze.patch ${{env.REPO}}/
           cp ./patches/safemode.patch ${{env.REPO}}/
           cp ./patches/0ctobot_hooks.patch ${{env.REPO}}/
+          cp ./patches/clang-lto.patch ${{env.REPO}}/
+          cp ./patches/clang-lto-test.patch ${{env.REPO}}/
           cp ./patches/ksu_handle_execve_ksud.patch ${{env.REPO}}/KernelSU/
           cp ./patches/devpts_lsm.patch ${{env.REPO}}/KernelSU/
           cp ./patches/ksu_version.patch ${{env.REPO}}/KernelSU/
@@ -103,6 +105,8 @@ jobs:
           patch -p0 --forward < uname.patch || true
           patch -p0 --forward < fuze.patch || true
           patch -p1 --forward < safemode.patch || true
+          patch -p1 --forward < clang-lto.patch || true
+          patch -p1 --forward < clang-lto-test.patch || true
           
           echo "Changing to KernelSU Directory to Apply KernelSU Patches"
           cd KernelSU
@@ -135,11 +139,11 @@ jobs:
           sed -i '/^CONFIG_LTO_NONE/d' $DEFCONFIG
 
           # Add the CLANG LTO and SUSFS config
-          echo "# CONFIG_LTO is not set" >> $DEFCONFIG
-          echo "# CONFIG_LTO_CLANG is not set" >> $DEFCONFIG
-          echo "# CONFIG_LTO_CLANG_THIN is not set" >> $DEFCONFIG
+          echo "CONFIG_LTO=y" >> $DEFCONFIG
+          echo "CONFIG_LTO_CLANG=y" >> $DEFCONFIG
+          echo "CONFIG_LTO_CLANG_FULL=y" >> $DEFCONFIG
+          echo "# CONFIG_LTO_CLANG_THIN is not se" >> $DEFCONFIG
           echo "# CONFIG_LTO_GCC is not set" >> $DEFCONFIG
-          echo "# CONFIG_LTO_CLANG_FULL is not set" >> $DEFCONFIG
           echo "CONFIG_KSU=y" >> $DEFCONFIG
           echo "CONFIG_KSU_WITH_KPROBES=n" >> $DEFCONFIG
           echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> $DEFCONFIG
