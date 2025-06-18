@@ -147,8 +147,8 @@ jobs:
           # Add the CLANG LTO and SUSFS config
           echo "CONFIG_LTO=y" >> $DEFCONFIG
           echo "CONFIG_LTO_CLANG=y" >> $DEFCONFIG
-          echo "CONFIG_LTO_CLANG_THIN=y" >> $DEFCONFIG
-          echo "# CONFIG_LTO_CLANG_FULL is not set" >> $DEFCONFIG
+          echo "# CONFIG_LTO_CLANG_THIN is not set" >> $DEFCONFIG
+          echo "CONFIG_LTO_CLANG_FULL=y" >> $DEFCONFIG
           echo "# CONFIG_LTO_GCC is not set" >> $DEFCONFIG
           echo "CONFIG_KSU=y" >> $DEFCONFIG
           echo "CONFIG_KSU_WITH_KPROBES=n" >> $DEFCONFIG
@@ -197,8 +197,10 @@ jobs:
          export KCFLAGS="-Wno-missing-variable-declarations -Wno-unused-but-set-variable -Wno-error -Wno-unused-variable -Wno-unused-const-variable"
          make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 \
          CROSS_COMPILE=aarch64-linux-gnu- \
+         LD=ld.lld AR=llvm-ar NM=llvm-nm STRIP=llvm-strip \
+         OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump \
          CC=clang -j$(nproc)
-         
+          
       - name: Check .config for SUSFS and LTO
         run: |
           cd "${{ env.CONFIG }}"
