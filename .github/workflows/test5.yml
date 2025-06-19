@@ -33,16 +33,27 @@ jobs:
          sudo apt update
          sudo apt install -y libssl-dev libelf-dev bc flex bison libncurses-dev
 
-      - name: Download Clang Beta Toolchain
+      - name: Restore Clang Toolchain Cache
+        id: cache-clang
+        uses: actions/cache/restore@v4
+        with:
+          path: ./toolchain/clang-r547379
+          key: clang-r547379
+
+      - name: Clone Clang Toolchain
+        if: steps.cache-clang.outputs.cache-hit != 'true'
         run: |
-          mkdir -p "$HOME/toolchain"
-          cd "$HOME/toolchain"
-          bash <(curl -s "https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman") -S
-          #git clone --depth=1 --branch=18 https://gitlab.com/ThankYouMario/android_prebuilts_clang-standalone.git clang
-          #mv clang $HOME/toolchain
-          #wget -O toolchain.tar.gz https://github.com/ZyCromerZ/Clang/releases/download/21.0.0git-20250617-release/Clang-21.0.0git-20250617.tar.gz
-          #mkdir -p $HOME/toolchain
-          #tar -xf toolchain.tar.gz -C $HOME/toolchain
+          git clone --depth=1 --branch=android16-release https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 clang-prebuilts
+          mkdir -p ./toolchain
+          mv clang-prebuilts/clang-r547379 ./toolchain/clang-r547379
+          rm -rf clang-prebuilts
+
+      - name: Save Clang Toolchain Cache
+        if: steps.cache-clang.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ./toolchain/clang-r547379
+          key: clang-r547379
 
       
       - name: Set up environment variables
@@ -150,6 +161,7 @@ jobs:
           echo "CONFIG_LTO_CLANG_THIN=y" >> $DEFCONFIG
           echo "# CONFIG_LTO_CLANG_FULL is not set" >> $DEFCONFIG
           echo "# CONFIG_LTO_GCC is not set" >> $DEFCONFIG
+          echo "CONFIG_HZ=600" >> $DEFCONFIG
           echo "CONFIG_KSU=y" >> $DEFCONFIG
           echo "CONFIG_KSU_WITH_KPROBES=n" >> $DEFCONFIG
           echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> $DEFCONFIG
