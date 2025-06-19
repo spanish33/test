@@ -71,6 +71,7 @@ jobs:
           echo "CROSS_COMPILE=aarch64-linux-gnu-" >> $GITHUB_ENV
           echo "CONFIG=${{env.REPO}}" >> $GITHUB_ENV
           
+          
 
       - name: Check compiler version
         run: clang --version 
@@ -205,6 +206,7 @@ jobs:
       - name: Build the Kernel
         run: |
          cd "${{ env.CONFIG }}"
+         export HOSTLD=ld.lld
          export KCFLAGS="-Wno-missing-variable-declarations -Wno-unused-but-set-variable -Wno-error -Wno-unused-variable -Wno-unused-const-variable"
          make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 \
          CROSS_COMPILE=aarch64-linux-gnu- \
