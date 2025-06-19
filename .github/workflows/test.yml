@@ -198,8 +198,6 @@ jobs:
          export KCFLAGS="-Wno-missing-variable-declarations -Wno-unused-but-set-variable -Wno-error -Wno-unused-variable -Wno-unused-const-variable"
          make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 \
          CROSS_COMPILE=aarch64-linux-gnu- \
-         LD=ld.lld AR=llvm-ar NM=llvm-nm STRIP=llvm-strip \
-         OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump \
          CC=clang -j$(nproc)
           
       - name: Check .config for SUSFS and LTO
