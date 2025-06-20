@@ -193,7 +193,7 @@ jobs:
         run: |
           cd "${{ env.CONFIG }}"
           echo "== Final .config  =="
-          grep -E 'CONFIG_LTO|CONFIG_KSU|CONFIG_SUSFS' out/.config || echo "❌ Missing expected configs"
+          grep -E 'CONFIG_HZ|CONFIG_LTO|CONFIG_KSU|CONFIG_SUSFS' out/.config || echo "❌ Missing expected configs"
 
 
       - name: Build the Kernel
@@ -208,7 +208,7 @@ jobs:
         run: |
           cd "${{ env.CONFIG }}"
           echo "== Final .config  =="
-          grep -E 'CONFIG_LTO|CONFIG_KSU|CONFIG_SUSFS' out/.config || echo "❌ Missing expected configs"
+          grep -E 'CONFIG_HZ|CONFIG_LTO|CONFIG_KSU|CONFIG_SUSFS' out/.config || echo "❌ Missing expected configs"
       
       - name: Copy Images
         run: |
