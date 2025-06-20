@@ -138,8 +138,7 @@ jobs:
           cd "${{ env.CONFIG }}"
           # Use the correct defconfig for your device
           sed -i '/CONFIG_HZ_[0-9]\+/d' arch/arm64/configs/gki-stock_defconfig
-          echo "CONFIG_HZ_1000=y" >> arch/arm64/configs/gki-stock_defconfig
-          echo "CONFIG_HZ=1000" >> arch/arm64/configs/gki-stock_defconfig
+
           make O=out ARCH=arm64 gki-stock_defconfig
           make O=out ARCH=arm64 olddefconfig
           grep CONFIG_HZ .config
@@ -158,6 +157,9 @@ jobs:
 
          
           # Add the CLANG LTO and SUSFS config
+          echo "# CONFIG_HZ_250  is not set" >> $DEFCONFIG
+          echo "CONFIG_HZ_1000=y" >> $DEFCONFIG
+          echo "CONFIG_HZ=1000" >> $DEFCONFIG
           echo "CONFIG_LTO=y" >> $DEFCONFIG
           echo "CONFIG_LTO_CLANG=y" >> $DEFCONFIG
           echo "CONFIG_LTO_CLANG_THIN=y" >> $DEFCONFIG
