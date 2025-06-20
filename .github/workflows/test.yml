@@ -75,6 +75,7 @@ jobs:
           git clone --depth=1 https://github.com/kerneltoast/${{env.REPO}} -b 15.0.0-sultan
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
 
+
           
       - name: Add KernelSU
         run: |
@@ -143,6 +144,10 @@ jobs:
           sed -i '/^CONFIG_LTO_CLANG_THIN/d' $DEFCONFIG
           sed -i '/^CONFIG_LTO_CLANG_FULL/d' $DEFCONFIG
           sed -i '/^CONFIG_LTO_NONE/d' $DEFCONFIG
+
+          sed -i '/CONFIG_HZ_[0-9]\+/d' arch/arm64/configs/gki-stock_defconfig
+          echo "CONFIG_HZ_1000=y" >> arch/arm64/configs/gki-stock_defconfig
+          echo "CONFIG_HZ=1000" >> arch/arm64/configs/gki-stock_defconfig
           
           # Add the CLANG LTO and SUSFS config
           echo "CONFIG_LTO=y" >> $DEFCONFIG
@@ -150,8 +155,6 @@ jobs:
           echo "CONFIG_LTO_CLANG_THIN=y" >> $DEFCONFIG
           echo "# CONFIG_LTO_CLANG_FULL is not set" >> $DEFCONFIG
           echo "# CONFIG_LTO_GCC is not set" >> $DEFCONFIG
-          echo "CONFIG_HZ_1000=y" >> $DEFCONFIG
-          echo "CONFIG_HZ=1000" >> $DEFCONFIG
           echo "CONFIG_KSU=y" >> $DEFCONFIG
           echo "CONFIG_KSU_WITH_KPROBES=n" >> $DEFCONFIG
           echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> $DEFCONFIG
