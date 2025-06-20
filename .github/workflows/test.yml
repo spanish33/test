@@ -143,9 +143,7 @@ jobs:
           sed -i '/^CONFIG_LTO_CLANG_THIN/d' $DEFCONFIG
           sed -i '/^CONFIG_LTO_CLANG_FULL/d' $DEFCONFIG
           sed -i '/^CONFIG_LTO_NONE/d' $DEFCONFIG
-          sed -i '/^CONFIG_HZ_250/d' $DEFCONFIG
-          sed -i '/^CONFIG_HZ/d' $DEFCONFIG
-
+          
           # Add the CLANG LTO and SUSFS config
           echo "CONFIG_LTO=y" >> $DEFCONFIG
           echo "CONFIG_LTO_CLANG=y" >> $DEFCONFIG
