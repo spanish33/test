@@ -133,16 +133,6 @@ jobs:
           cd "${{ env.CONFIG }}"
           patch -p1 --forward < 0ctobot_hooks.patch || true
 
-      - name: GKI-defconfig
-        run: |
-          cd "${{ env.CONFIG }}"
-          # Use the correct defconfig for your device
-          sed -i '/CONFIG_HZ_[0-9]\+/d' arch/arm64/configs/gki-stock_defconfig
-
-          make O=out ARCH=arm64 gki-stock_defconfig
-          make O=out ARCH=arm64 olddefconfig
-          grep CONFIG_HZ .config
-
       - name: Apply SUSFS
         run: |
           cd "${{ env.CONFIG }}"
