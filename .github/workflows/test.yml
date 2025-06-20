@@ -133,6 +133,17 @@ jobs:
           cd "${{ env.CONFIG }}"
           patch -p1 --forward < 0ctobot_hooks.patch || true
 
+      - name: GKI-defconfig
+        run: |
+          cd "${{ env.CONFIG }}"
+          # Use the correct defconfig for your device
+          sed -i '/CONFIG_HZ_[0-9]\+/d' arch/arm64/configs/gki-stock_defconfig
+          echo "CONFIG_HZ_1000=y" >> arch/arm64/configs/gki-stock_defconfig
+          echo "CONFIG_HZ=1000" >> arch/arm64/configs/gki-stock_defconfig
+          make O=out ARCH=arm64 gki-stock_defconfig
+          make O=out ARCH=arm64 olddefconfig
+          grep CONFIG_HZ .config
+
       - name: Apply SUSFS
         run: |
           cd "${{ env.CONFIG }}"
@@ -145,10 +156,7 @@ jobs:
           sed -i '/^CONFIG_LTO_CLANG_FULL/d' $DEFCONFIG
           sed -i '/^CONFIG_LTO_NONE/d' $DEFCONFIG
 
-          sed -i '/CONFIG_HZ_[0-9]\+/d' arch/arm64/configs/gki-stock_defconfig
-          echo "CONFIG_HZ_1000=y" >> arch/arm64/configs/gki-stock_defconfig
-          echo "CONFIG_HZ=1000" >> arch/arm64/configs/gki-stock_defconfig
-          
+         
           # Add the CLANG LTO and SUSFS config
           echo "CONFIG_LTO=y" >> $DEFCONFIG
           echo "CONFIG_LTO_CLANG=y" >> $DEFCONFIG
