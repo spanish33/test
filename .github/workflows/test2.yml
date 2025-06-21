@@ -70,6 +70,7 @@ jobs:
           echo "PATH=$HOME/toolchain/bin:$PATH" >> $GITHUB_ENV
           echo "CROSS_COMPILE=aarch64-linux-gnu-" >> $GITHUB_ENV
           echo "CONFIG=${{env.REPO}}" >> $GITHUB_ENV
+          echo "HOSTLD=$HOME/toolchain/bin/ld.lld" >> $GITHUB_ENV
           
           
 
