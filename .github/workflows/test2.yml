@@ -58,8 +58,8 @@ jobs:
       
       - name: Set up environment variables
         run: |
-          echo "CC=clang" >> $GITHUB_ENV
-          echo "LD=ld.lld" >> $GITHUB_ENV
+          echo "CC=./toolchain/clang-r498229b/bin/clang" >> $GITHUB_ENV
+          echo "LD=./toolchain/clang-r498229b/bin/ld.lld" >> $GITHUB_ENV
           echo "AR=llvm-ar" >> $GITHUB_ENV
           echo "NM=llvm-nm" >> $GITHUB_ENV
           echo "OBJCOPY=llvm-objcopy" >> $GITHUB_ENV
@@ -207,7 +207,6 @@ jobs:
       - name: Build the Kernel
         run: |
          cd "${{ env.CONFIG }}"
-         export HOSTLD="./toolchain/clang-r498229b/bin/ld.lld"
          export KCFLAGS="-Wno-missing-variable-declarations -Wno-unused-but-set-variable -Wno-error -Wno-unused-variable -Wno-unused-const-variable"
          make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 \
          CROSS_COMPILE=aarch64-linux-gnu- \
