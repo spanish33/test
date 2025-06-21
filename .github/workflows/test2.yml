@@ -67,7 +67,7 @@ jobs:
           echo "STRIP=llvm-strip" >> $GITHUB_ENV
           echo "LLVM=1" >> $GITHUB_ENV
           echo "LLVM_IAS=1" >> $GITHUB_ENV
-          echo "PATH=./toolchain/clang-r498229b/bin:$PATH" >> $GITHUB_ENV
+          echo "PATH=$GITHUB_WORKSPACE/toolchain/clang-r498229b/bin:$PATH" >> $GITHUB_ENV
           echo "CROSS_COMPILE=aarch64-linux-gnu-" >> $GITHUB_ENV
           echo "CONFIG=${{env.REPO}}" >> $GITHUB_ENV
          
