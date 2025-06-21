@@ -37,23 +37,23 @@ jobs:
         id: cache-clang
         uses: actions/cache/restore@v4
         with:
-          path: ./toolchain/clang-r547379
-          key: clang-r547379
+          path: ./toolchain/clang-r498229b
+          key: clang-r498229b
 
       - name: Clone Clang Toolchain
         if: steps.cache-clang.outputs.cache-hit != 'true'
         run: |
-          git clone --depth=1 --branch=android16-release https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 clang-prebuilts
+          git clone --depth=1 --branch=android15-release https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 clang-prebuilts
           mkdir -p ./toolchain
-          mv clang-prebuilts/clang-r547379 ./toolchain/clang-r547379
+          mv clang-prebuilts/clang-r498229b ./toolchain/clang-r498229b
           rm -rf clang-prebuilts
 
       - name: Save Clang Toolchain Cache
         if: steps.cache-clang.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
-          path: ./toolchain/clang-r547379
-          key: clang-r547379
+          path: ./toolchain/clang-r498229b
+          key: clang-r498229b
 
       
       - name: Set up environment variables
@@ -70,7 +70,7 @@ jobs:
           echo "PATH=$HOME/toolchain/bin:$PATH" >> $GITHUB_ENV
           echo "CROSS_COMPILE=aarch64-linux-gnu-" >> $GITHUB_ENV
           echo "CONFIG=${{env.REPO}}" >> $GITHUB_ENV
-          echo "HOSTLD=$HOME/toolchain/bin/ld.lld" >> $GITHUB_ENV
+         
           
           
 
@@ -207,7 +207,7 @@ jobs:
       - name: Build the Kernel
         run: |
          cd "${{ env.CONFIG }}"
-         export HOSTLD=ld.lld
+         export HOSTLD="$HOME/toolchain/bin/ld.lld"
          export KCFLAGS="-Wno-missing-variable-declarations -Wno-unused-but-set-variable -Wno-error -Wno-unused-variable -Wno-unused-const-variable"
          make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 \
          CROSS_COMPILE=aarch64-linux-gnu- \
