@@ -1,0 +1,200 @@
+name: test
+
+permissions:
+  contents: write  
+  actions: write   
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    env:
+      CODENAME: zuma
+      REPO: android_kernel_google_zuma
+
+    steps:
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 8192
+          temp-reserve-mb: 2048
+          swap-size-mb: 8192
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+
+
+      - name: Install dependencies
+        run: |
+         sudo apt update
+         sudo apt install -y libssl-dev libelf-dev bc flex bison libncurses-dev
+
+      - name: Download Toolchain
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/toolchain"
+          cd "$GITHUB_WORKSPACE/toolchain"
+          bash <(curl -s "https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman") -S
+          #git clone --depth=1 --branch=18 https://gitlab.com/ThankYouMario/android_prebuilts_clang-standalone.git clang
+          #mv clang $GITHUB_WORKSPACE/toolchain
+          #wget -O toolchain.tar.gz https://github.com/ZyCromerZ/Clang/releases/download/21.0.0git-20250711-release/Clang-21.0.0git-20250711.tar.gz
+          #mkdir -p $GITHUB_WORKSPACE/toolchain
+          #tar -xf toolchain.tar.gz -C $GITHUB_WORKSPACE/toolchain
+
+      
+      - name: Set up environment variables
+        run: |
+          echo "CC=clang" >> $GITHUB_ENV
+          echo "LD=ld.lld" >> $GITHUB_ENV
+          echo "AR=llvm-ar" >> $GITHUB_ENV
+          echo "NM=llvm-nm" >> $GITHUB_ENV
+          echo "OBJCOPY=llvm-objcopy" >> $GITHUB_ENV
+          echo "OBJDUMP=llvm-objdump" >> $GITHUB_ENV
+          echo "STRIP=llvm-strip" >> $GITHUB_ENV
+          echo "LLVM=1" >> $GITHUB_ENV
+          echo "LLVM_IAS=1" >> $GITHUB_ENV
+          echo "PATH=$GITHUB_WORKSPACE/toolchain/bin:$PATH" >> $GITHUB_ENV
+          echo "CROSS_COMPILE=aarch64-linux-gnu-" >> $GITHUB_ENV
+          
+
+      - name: Check compiler version
+        run: clang --version 
+        
+        
+      - name: Clone Repositories
+        run: |
+          echo "Clone Repositories"
+          
+          # Clone Repositories
+          git clone https://github.com/spanish33/AnyKernel3.git -b 16.0.0-sultan-zuma
+          git clone https://github.com/spanish33/patches.git
+          git clone --depth=1 https://github.com/kerneltoast/${{env.REPO}} -b 16.0.0-sultan
+          git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
+
+          
+      - name: Add KernelSU-Next
+        run: |
+          echo "Changing to configuration directory"
+          cd "${{ env.REPO }}"
+          echo "Adding KernelSU-Next..."
+          curl -LSs "https://raw.githubusercontent.com/pershoot/KernelSU-Next/refs/heads/next-susfs/kernel/setup.sh" | bash -s next-susfs
+
+      - name: Apply SUSFS Patches
+        run: |     
+          # Copy SUSFS patches
+          cp ./susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ${{env.REPO}}/
+          cp ./susfs4ksu/kernel_patches/fs/* ${{env.REPO}}/fs/
+          cp ./susfs4ksu/kernel_patches/include/linux/* ${{env.REPO}}/include/linux/
+          cp ./patches/uname.patch ${{env.REPO}}/
+          cp ./patches/safemode.patch ${{env.REPO}}/
+          cp ./patches/0ctobot_hooks.patch ${{env.REPO}}/
+          cp ./patches/clang-lto.patch ${{env.REPO}}/
+          cp ./patches/clang-lto-test.patch ${{env.REPO}}/
+          cp ./patches/next_managers.patch ${{env.REPO}}/KernelSU-Next/
+       
+          
+
+          echo "Changing to configuration directory"
+          cd "${{env.REPO}}"
+          echo "Applying SUSFS patches..."
+          patch -p1 --forward < 50_add_susfs_in_gki-android14-6.1.patch || true
+          patch -p0 --forward < uname.patch || true
+          patch -p1 --forward < safemode.patch || true
+          patch -p1 --forward < clang-lto.patch || true
+          patch -p1 --forward < clang-lto-test.patch || true
+          
+          echo "Allow Additional Managers"
+          cd KernelSU-Next
+          patch -p0 --forward < next_managers.patch || true
+          
+
+      - name: Apply KSU Hooks from 0ctobot
+        run: |
+          echo "Applying hooks from 0ctobot"
+          cd "${{env.REPO}}"
+          patch -p1 --forward < 0ctobot_hooks.patch || true
+
+      - name: Apply SUSFS
+        run: |
+          cd "${{env.REPO}}"
+          DEFCONFIG=arch/arm64/configs/${{ env.CODENAME }}_defconfig
+          # Remove existing conflicting LTO lines
+          sed -i '/^CONFIG_LTO/d' $DEFCONFIG
+          sed -i '/^CONFIG_LTO_GCC/d' $DEFCONFIG
+          sed -i '/^CONFIG_LTO_CLANG/d' $DEFCONFIG
+          sed -i '/^CONFIG_LTO_CLANG_THIN/d' $DEFCONFIG
+          sed -i '/^CONFIG_LTO_CLANG_FULL/d' $DEFCONFIG
+          sed -i '/^CONFIG_LTO_NONE/d' $DEFCONFIG
+
+         
+          # Add the CLANG LTO and SUSFS config
+          echo "CONFIG_LTO=y" >> $DEFCONFIG
+          echo "CONFIG_LTO_CLANG=y" >> $DEFCONFIG
+          echo "#CONFIG_LTO_CLANG_THIN is not set" >> $DEFCONFIG
+          echo "CONFIG_LTO_CLANG_FULL=y" >> $DEFCONFIG
+          echo "# CONFIG_LTO_GCC is not set" >> $DEFCONFIG
+          echo "CONFIG_KSU=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_WITH_KPROBES=n" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> $DEFCONFIG
+          echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> $DEFCONFIG
+          echo "CONFIG_TMPFS_XATTR=y" >> $DEFCONFIG
+          echo "CONFIG_TMPFS_POSIX_ACL=y" >> $DEFCONFIG
+
+            
+      - name: Change Kernel Name
+        run: |
+          cd "${{env.REPO}}"
+          echo "Changing Kernel Name..."
+          sed -i 's/CONFIG_LOCALVERSION="-Sultan"/CONFIG_LOCALVERSION="-android14-11-g8d713f9e8e7b-ab13202960"/' \
+            ./arch/arm64/configs/${{ env.CODENAME }}_defconfig
+
+      - name: Build defconfig
+        run: |
+          cd "${{env.REPO}}"
+          # Use the correct defconfig for your device
+          make O=out ARCH=arm64 ${{ env.CODENAME }}_defconfig
+
+
+      - name: Build the Kernel
+        run: |
+         cd "${{env.REPO}}"
+         export KCFLAGS="-Wno-missing-variable-declarations -Wno-unused-but-set-variable -Wno-error -Wno-unused-variable -Wno-unused-const-variable"
+         make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 \
+         CROSS_COMPILE=aarch64-linux-gnu- \
+         CC=clang -j$(nproc)
+          
+     
+      - name: Copy Images
+        run: |
+          cd "${{env.REPO}}"
+          cp out/arch/arm64/boot/Image.lz4 ../AnyKernel3/Image.lz4
+          cat out/google-devices/zuma/dts/*.dtb > ../AnyKernel3/dtb
+
+      - name: Create Flashable ZIP
+        run: |
+          cd AnyKernel3
+          ZIP_NAME="Sultan_SUSFS_KernelSU-Next_A16_Clang_LTO-Test.zip"
+          zip -r "../$ZIP_NAME" ./*
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Zuma-A16-Clang-LTO-Test
+          path: |
+            ./Sultan_SUSFS_KernelSU-Next_A16_Clang_LTO-Test.zip
