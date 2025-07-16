@@ -36,13 +36,12 @@ jobs:
       - name: Download Toolchain
         run: |
           mkdir -p "$GITHUB_WORKSPACE/toolchain"
-          cd "$GITHUB_WORKSPACE/toolchain"
-          bash <(curl -s "https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman") -S
+          #cd "$GITHUB_WORKSPACE/toolchain"
+          #bash <(curl -s "https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman") -S
           #git clone --depth=1 --branch=18 https://gitlab.com/ThankYouMario/android_prebuilts_clang-standalone.git clang
           #mv clang $GITHUB_WORKSPACE/toolchain
-          #wget -O toolchain.tar.gz https://github.com/ZyCromerZ/Clang/releases/download/21.0.0git-20250711-release/Clang-21.0.0git-20250711.tar.gz
-          #mkdir -p $GITHUB_WORKSPACE/toolchain
-          #tar -xf toolchain.tar.gz -C $GITHUB_WORKSPACE/toolchain
+          wget -O toolchain.tar.gz https://github.com/ZyCromerZ/Clang/releases/download/21.0.0git-20250716-release/Clang-21.0.0git-20250716.tar.gz
+          tar -xf toolchain.tar.gz -C $GITHUB_WORKSPACE/toolchain
 
       
       - name: Set up environment variables
@@ -133,8 +132,8 @@ jobs:
           # Add the CLANG LTO and SUSFS config
           echo "CONFIG_LTO=y" >> $DEFCONFIG
           echo "CONFIG_LTO_CLANG=y" >> $DEFCONFIG
-          echo "#CONFIG_LTO_CLANG_THIN is not set" >> $DEFCONFIG
-          echo "CONFIG_LTO_CLANG_FULL=y" >> $DEFCONFIG
+          echo "CONFIG_LTO_CLANG_THIN=y" >> $DEFCONFIG
+          echo "#CONFIG_LTO_CLANG_FULL is not set" >> $DEFCONFIG
           echo "# CONFIG_LTO_GCC is not set" >> $DEFCONFIG
           echo "CONFIG_KSU=y" >> $DEFCONFIG
           echo "CONFIG_KSU_WITH_KPROBES=n" >> $DEFCONFIG
