@@ -160,7 +160,7 @@ jobs:
         run: |
           cd "${{env.REPO}}"
           echo "Changing Kernel Name..."
-          sed -i 's/CONFIG_LOCALVERSION="-Sultan"/CONFIG_LOCALVERSION="-android14-11-g8d713f9e8e7b-ab13202960"/' \
+          sed -i 's/CONFIG_LOCALVERSION="-Sultan"/CONFIG_LOCALVERSION="-android14-11-g8d713f9e8e7b-ab1320296"/' \
             ./arch/arm64/configs/${{ env.CODENAME }}_defconfig
 
       - name: Build defconfig
