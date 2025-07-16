@@ -40,7 +40,7 @@ jobs:
           #bash <(curl -s "https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman") -S
           #git clone --depth=1 --branch=18 https://gitlab.com/ThankYouMario/android_prebuilts_clang-standalone.git clang
           #mv clang $GITHUB_WORKSPACE/toolchain
-          wget -O toolchain.tar.gz https://github.com/ZyCromerZ/Clang/releases/download/21.0.0git-20250716-release/Clang-21.0.0git-20250716.tar.gz
+          wget -O toolchain.tar.gz https://github.com/ZyCromerZ/Clang/releases/download/22.0.0git-20250716-release/Clang-22.0.0git-20250716.tar.gz
           tar -xf toolchain.tar.gz -C $GITHUB_WORKSPACE/toolchain
 
       
