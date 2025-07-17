@@ -89,7 +89,7 @@ jobs:
           cp ./susfs4ksu/kernel_patches/include/linux/* ${{env.REPO}}/include/linux/
           cp ./patches/uname.patch ${{env.REPO}}/
           cp ./patches/safemode.patch ${{env.REPO}}/
-          cp ./patches/0ctobot_hooks.patch ${{env.REPO}}/
+          cp ./patches/scope-minimized_manual_hooks_v1.5.patch ${{env.REPO}}/
           cp ./patches/clang-lto.patch ${{env.REPO}}/
           cp ./patches/clang-lto-test.patch ${{env.REPO}}/
           cp ./patches/next_managers.patch ${{env.REPO}}/KernelSU-Next/
@@ -110,11 +110,11 @@ jobs:
           patch -p0 --forward < next_managers.patch || true
           
 
-      - name: Apply KSU Hooks from 0ctobot
+      - name: Apply KSU Hooks scope-minimized_manual_hooks
         run: |
           echo "Applying hooks from 0ctobot"
           cd "${{env.REPO}}"
-          patch -p1 --forward < 0ctobot_hooks.patch || true
+          patch -p1 --forward < scope-minimized_manual_hooks_v1.5.patch || true
 
       - name: Apply SUSFS
         run: |
